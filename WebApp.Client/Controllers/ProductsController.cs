@@ -104,7 +104,6 @@ public class ProductsController(IMemoryCache cache) : Controller
         // On renvoie uniquement le fichier .razor sans le Layout global.
         if (Request.Headers.ContainsKey("HX-Request"))
         {
-            // Note : Assure-toi que le nom du fichier correspond (souvent DataTable.razor)
             return PartialView("_TablePartial", vm); 
         }
 

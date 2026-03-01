@@ -4,22 +4,44 @@
     table-layout: auto;
 }
 
-.clickable-row {
+/* --- EN-TÊTES DE COLONNES (Harmonisation Centrage) --- */
+.clickable-header {
     cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
+    background-color: #f8f9fa; /* Uniformisation background */
+    vertical-align: middle;
+    padding: 0.75rem !important; /* Uniformisation padding */
+    transition: background-color 0.2s;
 }
 
-.clickable-row:hover {
-    background-color: rgba(0, 0, 0, 0.04) !important;
+.clickable-header:hover {
+    background-color: #e9ecef;
 }
 
+/* HARMONISATION : Centre le titre et l'icône de tri */
+.clickable-header .d-flex {
+    justify-content: center !important; /* Force le centrage du contenu de l'en-tête */
+    gap: 0.5rem; /* Espace entre le titre et l'icône */
+    width: 100%;
+}
+
+.clickable-header span {
+    font-weight: 600;
+    color: #495057;
+}
+
+.clickable-header i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* --- ÉTAT SÉLECTIONNÉ --- */
 .clickable-row.table-active {
     background-color: rgba(13, 110, 253, 0.08) !important;
     border-left: 4px solid #0d6efd !important;
     font-weight: 500;
 }
 
-/* --- COLONNE D'ACTIONS (Simplifiée : Uniquement des boutons) --- */
+/* --- COLONNE D'ACTIONS --- */
 .col-actions {
     width: 1%;
     white-space: nowrap;
@@ -37,10 +59,8 @@
     overflow: hidden;
 }
 
-/* Le formulaire devient transparent pour le layout */
 .col-actions .btn-group form { display: contents; }
 
-/* Règle unique pour tous les boutons (Détail & Delete) */
 .col-actions .btn-group .btn {
     width: 38px !important;
     height: 34px !important;
@@ -51,7 +71,7 @@
     border: none !important;
     border-radius: 0 !important;
     background-color: transparent;
-    font-size: 1.1rem !important; /* Taille uniforme de l'icône */
+    font-size: 1.1rem !important;
     color: #6c757d;
     transition: all 0.2s;
 }
@@ -65,7 +85,7 @@
     color: #0d6efd !important;
 }
 
-/* --- FOOTER (Taille à Gauche / Nav à Droite) --- */
+/* --- FOOTER GLOBAL --- */
 .dt-footer {
     display: flex;
     flex-direction: column;
