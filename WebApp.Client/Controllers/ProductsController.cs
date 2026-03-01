@@ -10,12 +10,10 @@ public class ProductsController(IMemoryCache cache) : Controller
     private const string DataCacheKey = "Products_Data_List";
     private const string StateCacheKey = "Products_Table_State";
 
-    // 1. Source de vérité : on récupère ou on initialise le million de produits en cache
     private List<Product> GetCachedData()
     {
         return cache.GetOrCreate(DataCacheKey, entry =>
         {
-            // Le cache expire après 60 min d'inactivité pour libérer la RAM si inutilisé
             entry.SlidingExpiration = TimeSpan.FromMinutes(60);
             return GenerateMillion();
         }) ?? new List<Product>();
@@ -25,7 +23,6 @@ public class ProductsController(IMemoryCache cache) : Controller
     {
         var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
 
-        // Si la taille change, on revient par sécurité à la page 1
         if (state.PageSize != pageSize)
         {
             state.PageSize = pageSize;
@@ -36,107 +33,82 @@ public class ProductsController(IMemoryCache cache) : Controller
             state.PageIndex = page;
         }
 
-
-        // 2. GESTION DU TRI
         if (sort != null)
         {
             state.IsAscending = (state.SortColumn == sort) ? !state.IsAscending : true;
             state.SortColumn = sort;
         }
 
-        // 3. PERSISTANCE
         cache.Set(StateCacheKey, state);
 
         return BuildTableResult(state);
     }
 
-    [HttpDelete]
-   [HttpPost] // On passe en HttpPost car les formulaires HTML standards ne supportent pas DELETE
-public IActionResult Delete(Guid id)
-{
-    var data = GetCachedData();
-    var item = data.FirstOrDefault(p => p.Id == id);
-
-    if (item != null)
+    [HttpPost] 
+    public IActionResult Delete(Guid id)
     {
-        data.Remove(item);
-        cache.Set(DataCacheKey, data);
+        var data = GetCachedData();
+        var item = data.FirstOrDefault(p => p.Id == id);
+
+        if (item != null)
+        {
+            data.Remove(item);
+            cache.Set(DataCacheKey, data);
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
-    // Après suppression, on redirige vers l'index pour voir la liste à jour
-    return RedirectToAction(nameof(Index));
-}
-
-  public IActionResult Details(Guid id)
-{
-    var data = GetCachedData();
-    var product = data.FirstOrDefault(p => p.Id == id);
-    if (product == null) return NotFound();
-
-    // 1. ON MÉMORISE l'ID sélectionné dans le cache AVANT d'aller aux détails
-    var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
-    state.SelectedId = id;
-    cache.Set(StateCacheKey, state);
-
-    product.LastConsulted = DateTime.Now;
-    return View(product);
-}
-
-    public IActionResult GetSpecification(Guid id)
+    public IActionResult Details(Guid id)
     {
         var data = GetCachedData();
         var product = data.FirstOrDefault(p => p.Id == id);
         if (product == null) return NotFound();
 
+        var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
+        state.SelectedId = id;
+        cache.Set(StateCacheKey, state);
 
-        return Content($"Spécifications techniques du produit {product.Name} (ID: {product.Id})");
+        product.LastConsulted = DateTime.Now;
+        return View(product);
     }
 
-    public IActionResult GetDescription(Guid id)
-    {
-        var data = GetCachedData();
-        var product = data.FirstOrDefault(p => p.Id == id);
-        if (product == null) return NotFound();
-
-
-        return Content($"Description du produit {product.Name} (ID: {product.Id})");
-    }
-
-
-    // Méthode pivot : Délègue le tri et la pagination au ViewModel agnostique
+    // --- LOGIQUE DE RENDU PARTIEL ---
     private IActionResult BuildTableResult(DataTableState<Guid> state)
     {
-        var data = GetCachedData(); // On donne la référence de la liste complète (1M) du cache
+        var data = GetCachedData(); 
         var vm = new DataTableViewModel<Product, Guid>
         {
             TableId = "prod-grid",
             Items = data,
             CurrentPage = state.PageIndex,
-            PageSize = state.PageSize,     // CRUCIAL : On injecte la taille de page du cache
+            PageSize = state.PageSize,     
             SelectedId = state.SelectedId,
             SortColumn = state.SortColumn,
             IsAsc = state.IsAscending,
             KeySelector = p => p.Id,
-            HasActionButton=true,
-            TotalItems=data.Count,
-
+            HasActionButton = true,
+            TotalItems = data.Count,
             Columns = [
-            ("N°", "Id"),
-            ("Référence", "Description"),
-            ("Nom", "Name"),
-            ("Prix", "Price"),
-            ("Consulté", "LastConsulted")
+                ("N°", "Id"),
+                ("Référence", "Description"),
+                ("Nom", "Name"),
+                ("Prix", "Price"),
+                ("Consulté", "LastConsulted")
             ]
         };
 
-        // LE VIEWMODEL TRAVAILLE EN AUTONOMIE SUR LES DONNÉES DU CACHE
-        // Il va trier, calculer le nouveau TotalPages (ex: 1M / 50 = 20 000)
-        // et extraire uniquement les lignes de la page courante.
         vm.ProcessData(state.PageSize);
 
-        // if (Request.Headers["HX-Request"] == "true")
-        //     return PartialView("_TablePartial", vm);
+        // DÉTECTION HTMX : Si l'en-tête HX-Request est présent
+        // On renvoie uniquement le fichier .razor sans le Layout global.
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            // Note : Assure-toi que le nom du fichier correspond (souvent DataTable.razor)
+            return PartialView("_TablePartial", vm); 
+        }
 
+        // Sinon (chargement initial), on renvoie la vue complète avec le Layout.
         return View("Index", vm);
     }
 
