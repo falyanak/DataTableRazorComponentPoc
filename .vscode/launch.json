@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (Web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "FULL BUILD (TS + .NET)",
+            "program": "${workspaceFolder}/WebApp.Client/bin/Debug/net8.0/WebApp.Client.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/WebApp.Client",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/WebApp.Client/Views"
+            }
+        }
+    ]
+}

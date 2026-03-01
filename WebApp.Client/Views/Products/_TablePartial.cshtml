@@ -1,0 +1,16 @@
+@using Rcl.DataTable.Models
+
+@{
+    Func<Product, List<TableAction>> productActions = (p) => new List<TableAction>
+    {
+        new() { Icon = "bi-eye-fill", Title = "Détails", Url = $"/Products/Details/{p.Id}" },
+        new() { Icon = "bi-trash3-fill", Title = "Supprimer", Url = $"/Products/Delete/{p.Id}", 
+                ColorClass = "text-danger", IsDelete = true },
+        new() { Icon = "bi-eye-fill", Title = "Détails", Url = $"/Products/Details/{p.Id}" },
+    };
+}
+
+<component type="typeof(Rcl.DataTable.Components.DataTable<Product, Guid>)" 
+           render-mode="Static" 
+           param-Model="Model" 
+           param-GetActions="productActions" />

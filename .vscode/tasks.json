@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "1. Build TS (Rcl.DataTable)",
+            "type": "shell",
+            "command": "npx tsc src/main.ts --outFile wwwroot/js/datatable.js --target es6 --lib dom,es2015",
+            "options": {
+                "cwd": "${workspaceFolder}/Rcl.DataTable"
+            },
+            "problemMatcher": "$tsc"
+        },
+        {
+            "label": "2. Build TS (WebApp.Client)",
+            "type": "shell",
+            "command": "npx tsc src/main.ts --outFile wwwroot/js/main.js --target es6 --lib dom,es2015",
+            "options": {
+                "cwd": "${workspaceFolder}/WebApp.Client"
+            },
+            "problemMatcher": "$tsc"
+        },
+        {
+            "label": "3. Build .NET (WebApp.Client)",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/WebApp.Client/WebApp.Client.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "FULL BUILD (TS + .NET)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "1. Build TS (Rcl.DataTable)",
+                "2. Build TS (WebApp.Client)",
+                "3. Build .NET (WebApp.Client)"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

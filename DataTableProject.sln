@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rcl.DataTable", "Rcl.DataTable\Rcl.DataTable.csproj", "{3F862A4A-4C76-4AC7-B463-D28505BA3A23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp.Client", "WebApp.Client\WebApp.Client.csproj", "{B7F7CA6F-D104-4251-8593-B515391F2770}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F862A4A-4C76-4AC7-B463-D28505BA3A23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F862A4A-4C76-4AC7-B463-D28505BA3A23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F862A4A-4C76-4AC7-B463-D28505BA3A23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F862A4A-4C76-4AC7-B463-D28505BA3A23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7F7CA6F-D104-4251-8593-B515391F2770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7F7CA6F-D104-4251-8593-B515391F2770}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7F7CA6F-D104-4251-8593-B515391F2770}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7F7CA6F-D104-4251-8593-B515391F2770}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

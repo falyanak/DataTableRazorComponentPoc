@@ -1,0 +1,37 @@
+@model WebApp.Client.Models.Product
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Products">Catalogue</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h2 class="mb-0">@Model.Name <small class="text-muted">(@Model.Description)</small></h2>
+        </div>
+        
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs px-3 pt-3 bg-light" id="productTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" hx-get="/Products/GetDescription/@Model.Id" hx-target="#tab-content">
+                        <i class="bi bi-info-circle"></i> Description
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" hx-get="/Products/GetSpecification/@Model.Id" hx-target="#tab-content">
+                        <i class="bi bi-list-check"></i> Spécifications
+                    </button>
+                </li>
+            </ul>
+
+            <div id="tab-content" class="p-4">
+                @* Contenu initial par défaut *@
+                <p>@Model.Name - Prix : @Model.Price.ToString("C2")</p>
+                <p>ID unique : @Model.Id</p>
+            </div>
+        </div>
+    </div>
+</div>

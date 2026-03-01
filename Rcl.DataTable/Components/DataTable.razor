@@ -1,0 +1,128 @@
+@typeparam TItem
+@typeparam TKey
+@using Rcl.DataTable.Models
+@inject NavigationManager Navigation
+
+@if (Model != null)
+{
+    <div class="dt-container border rounded bg-white shadow-sm d-flex flex-column" id="dt-@Model.TableId">
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-nowrap">
+                    <tr>
+                        @foreach (var col in Model.Columns)
+                        {
+                            <th hx-get="@Model.GetSortUrl(col.Item2)" hx-target="#dt-@Model.TableId"
+                                class="user-select-none clickable-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>@col.Item1</span>
+                                    @if (Model.SortColumn == col.Item2)
+                                    {
+                                        <i class="bi @(Model.IsAsc ? "bi-sort-up" : "bi-sort-down") text-primary ms-1"></i>
+                                    }
+                                </div>
+                            </th>
+                        }
+                        @if (Model.HasActionButton)
+                        {
+                            <th class="col-actions text-center">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        var actions = GetActions?.Invoke(item) ?? new List<TableAction>();
+                        var detailUrl = actions.FirstOrDefault(a => !a.IsDelete)?.Url;
+                        var isSelected = Model.SelectedId?.Equals(Model.GetKey(item)) ?? false;
+
+                        <tr class="clickable-row @(isSelected ? "table-active" : "")"
+                            onclick="if (!event.target.closest('.col-actions')) { window.location.href='@detailUrl'; }">
+
+                            @foreach (var col in Model.Columns)
+                            {
+                                <td>@Model.GetFormattedValue(item, col.Item2)</td>
+                            }
+
+                            @if (Model.HasActionButton)
+                            {
+                                <td class="col-actions">
+                                    <DataTableActions Actions="actions" />
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* Footer Global réorganisé *@
+        <div class="dt-footer">
+            @* 1. Taille de page à GAUCHE *@
+            <div class="page-size-container">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted text-nowrap">Afficher</span>
+                    <select class="form-select form-select-sm shadow-sm" name="pageSize"
+                            hx-get="@Model.GetPageUrl(1).Split('?')[0]" hx-target="#dt-@Model.TableId" hx-trigger="change">
+                        @foreach (var option in Model.PageSizeOptions)
+                        {
+                            <option value="@option" selected="@(Model.PageSize == option)">@option</option>
+                        }
+                    </select>
+                    <span class="small text-muted text-nowrap">lignes / page</span>
+                </div>
+            </div>
+
+            @* 2. Pagination à DROITE *@
+            <div class="pagination-wrapper">
+                <div class="btn-group-flexible">
+                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(1)"
+                            hx-target="#dt-@Model.TableId">
+                        <i class="bi bi-chevron-bar-left"></i>
+                    </button>
+
+                    @{
+                        var prevBlock = Math.Max(1, Model.CurrentPage - 10);
+                    }
+                    <button class="btn btn-sm btn-light border-0 d-none d-sm-flex" hx-get="@Model.GetPageUrl(prevBlock)"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage <= 1)">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage <= 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+
+                    <span class="page-info-text bg-white">
+                        @Model.GetInfoPagePositionFormattedValue()
+                    </span>
+
+                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                    @{
+                        var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10);
+                    }
+                    <button class="btn btn-sm btn-light border-0 d-none d-sm-flex" hx-get="@Model.GetPageUrl(nextBlock)"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.TotalPages)"
+                            hx-target="#dt-@Model.TableId">
+                        <i class="bi bi-chevron-bar-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public DataTableViewModel<TItem, TKey> Model { get; set; }
+    [Parameter] public Func<TItem, List<TableAction>>? GetActions { get; set; }
+}

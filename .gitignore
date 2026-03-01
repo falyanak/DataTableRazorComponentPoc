@@ -1,0 +1,24 @@
+# --- Artefacts de compilation ---
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# --- Fichiers de debug et exécutables ---
+*.exe
+*.dll
+*.pdb
+*.node
+*.msi
+
+# --- IDE (Visual Studio, VS Code, Rider) ---
+.vs/
+.idea/
+*.user
+*.suo
+.vscode/bin/
+.vscode/obj/
+
+# --- Environnement et Dépendances ---
+node_modules/
+.env
+.devcontainer/*.log

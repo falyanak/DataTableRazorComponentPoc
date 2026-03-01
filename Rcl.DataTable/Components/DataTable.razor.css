@@ -1,0 +1,170 @@
+/* --- TABLE & LIGNES --- */
+.table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.clickable-row:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* --- ÉTAT SÉLECTIONNÉ --- */
+.clickable-row.table-active {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+    border-left: 4px solid #0d6efd !important;
+    font-weight: 500;
+}
+
+/* --- COLONNE D'ACTIONS (n-boutons) --- */
+.col-actions {
+    width: 1% !important;        
+    white-space: nowrap !important; 
+    text-align: right;
+    vertical-align: middle;
+    padding: 0.5rem 1rem !important; 
+    background-color: inherit;
+    cursor: default;
+}
+
+.col-actions .btn-group {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important; 
+    width: max-content !important; 
+    min-width: max-content !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.col-actions .btn-group .btn {
+    border: none;
+    border-radius: 0;
+    padding: 0.4rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.col-actions .btn-group .border-start {
+    border-left: 1px solid #dee2e6 !important;
+}
+
+.col-actions .btn:hover {
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+/* --- FOOTER GLOBAL (REMANIÉ) --- */
+.dt-footer {
+    display: flex;
+    flex-direction: column; /* Mobile : Empilé et centré */
+    align-items: center; 
+    gap: 1.25rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    width: 100%;
+    user-select: none;
+}
+
+@media (min-width: 768px) {
+    .dt-footer {
+        flex-direction: row;
+        justify-content: space-between; /* Écarte Taille (G) et Navigation (D) */
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* --- PAGINATION (DROITE SUR DESKTOP) --- */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    width: auto;
+}
+
+@media (min-width: 768px) {
+    .pagination-wrapper {
+        justify-content: flex-end; /* Colle la pagination à droite */
+    }
+}
+
+.btn-group-flexible {
+    display: inline-flex;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.btn-group-flexible .btn {
+    min-width: 40px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+    border: none;
+    transition: background-color 0.1s;
+}
+
+.btn-group-flexible .btn:hover:not(:disabled) {
+    background-color: #f1f3f5;
+}
+
+.page-info-text {
+    min-width: 130px; 
+    font-size: 0.85rem;
+    font-weight: bold;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    padding: 0 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+}
+
+/* --- TAILLE DE PAGE (GAUCHE SUR DESKTOP) --- */
+.page-size-container {
+    display: flex;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .page-size-container {
+        justify-content: flex-start; /* Colle le sélecteur à gauche */
+    }
+}
+
+.page-size-container select.form-select {
+    width: 75px !important; 
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    cursor: pointer;
+}
+
+/* --- ADAPTATION MOBILE --- */
+@media (max-width: 768px) {
+    .table td {
+        white-space: normal; 
+        word-break: break-word;
+        padding: 0.75rem 0.5rem !important;
+        font-size: 0.85rem;
+    }
+
+    .col-actions {
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    .col-actions .btn-group .btn {
+        padding: 0.35rem 0.55rem;
+    }
+}

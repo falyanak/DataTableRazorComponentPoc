@@ -1,0 +1,31 @@
+@using Rcl.DataTable.Models
+
+@if (Actions != null && Actions.Any())
+{
+    <div class="btn-group btn-group-sm" onclick="event.stopPropagation();">
+        @foreach (var action in Actions)
+        {
+            var borderClass = action != Actions.First() ? "border-start" : "";
+            
+            @if (action.IsDelete)
+            {
+                <form action="@action.Url" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass"
+                            onclick="return confirm('@action.Title ?');" title="@action.Title">
+                        <i class="bi @action.Icon"></i>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a href="@action.Url" class="btn btn-white @action.ColorClass @borderClass" title="@action.Title">
+                    <i class="bi @action.Icon"></i>
+                </a>
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public List<TableAction> Actions { get; set; } = new();
+}
