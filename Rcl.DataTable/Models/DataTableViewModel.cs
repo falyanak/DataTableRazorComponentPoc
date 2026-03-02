@@ -78,6 +78,7 @@ public class DataTableViewModel<TItem, TKey>
         this.PageSize = pageSize;
 
         // 2. Tri (agnostique par réflexion)
+        // TODO: Optimiser ce tri pour ne pas faire de réflexion à chaque fois (ex: cache des propriétés)
         if (!string.IsNullOrEmpty(SortColumn))
         {
             var prop = typeof(TItem).GetProperty(SortColumn);

@@ -21,10 +21,13 @@ public class ProductsController(IMemoryCache cache) : Controller
 
     public IActionResult Index(int page = 1, string? sort = null, int pageSize = 10, string? searchTerm = null)
     {
-        var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
+        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
+
+        state.PageSize = pageSize;
 
         // Mise à jour de l'état avec le nouveau terme de recherche
         // Si le terme change, on repasse généralement à la page 1
+        // true si searchTerm est différent de l'actuel, ou si c'est la première fois qu'on le définit
         if (state.SearchTerm != searchTerm)
         {
             state.SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm;
@@ -68,7 +71,7 @@ public class ProductsController(IMemoryCache cache) : Controller
         var product = data.FirstOrDefault(p => p.Id == id);
         if (product == null) return NotFound();
 
-        var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
+        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
         state.SelectedId = id;
         cache.Set(StateCacheKey, state);
 
@@ -77,19 +80,37 @@ public class ProductsController(IMemoryCache cache) : Controller
     }
 
     // --- LOGIQUE DE RENDU PARTIEL ---
-    private IActionResult BuildTableResult(DataTableState<Guid> state)
+    private IActionResult BuildTableResult(DataTableState<Product, Guid> state)
     {
-        var data = GetCachedData();
+        List<Product> data;
 
-        // --- LOGIQUE DE FILTRAGE AVANT PAGINATION ---
-        if (!string.IsNullOrWhiteSpace(state.SearchTerm))
+        // on détecte une navigation avec même terme de recherche filtré et des résultats déjà calculés
+        if (state.IsFiltered && state.FilteredItems.Any())
         {
-            var term = state.SearchTerm.ToLower();
-            data = data.Where(p =>
-                p.Name.ToLower().Contains(term) ||
-                p.Description.ToLower().Contains(term)
-            ).ToList();
+            data = state.FilteredItems;
         }
+        else
+        {
+            // Sinon, on procède au filtrage classique à partir de la source complète
+            data = GetCachedData();
+
+            // --- LOGIQUE DE FILTRAGE AVANT PAGINATION ---
+            if (!string.IsNullOrWhiteSpace(state.SearchTerm))
+            {
+                var term = state.SearchTerm.ToLower();
+                data = data.Where(p =>
+                    p.Name.ToLower().Contains(term) ||
+                    p.Description.ToLower().Contains(term)
+                ).ToList();
+
+                state.FilteredItems = data;
+            }
+            else
+            {
+                state.FilteredItems = [];
+            }
+        }
+
         var vm = new DataTableViewModel<Product, Guid>
         {
             TableId = "prod-grid",
@@ -115,6 +136,7 @@ public class ProductsController(IMemoryCache cache) : Controller
                 IsVisible = true,
                 SearchTerm = state.SearchTerm,
                 SearchUrl = Url.Action("Index", "Products"), // L'Index gère tout maintenant
+                EraseSearchUrl = Url.Action("EraseSearchFilter", "Products"),
                 Placeholder = "Rechercher un produit..."
             }
         };
@@ -123,15 +145,23 @@ public class ProductsController(IMemoryCache cache) : Controller
 
         // DÉTECTION HTMX : Si l'en-tête HX-Request est présent
         // On renvoie uniquement le fichier .razor sans le Layout global.
-        if (Request.Headers.ContainsKey("HX-Request"))
-        {
-            return PartialView("_TablePartial", vm);
-        }
-
         // Sinon (chargement initial), on renvoie la vue complète avec le Layout.
-       return Request.Headers.ContainsKey("HX-Request") 
-        ? PartialView("_TablePartial", vm) 
-        : View("Index", vm);
+        return Request.Headers.ContainsKey("HX-Request")
+         ? PartialView("_TablePartial", vm)
+         : View("Index", vm);
+    }
+
+    public IActionResult EraseSearchFilter()
+    {
+        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
+        if (state != null)
+        {
+            state.SearchTerm = null;
+            state.FilteredItems = [];
+            state.PageIndex = 1; // Optionnel : revenir à la première page
+            cache.Set(StateCacheKey, state);
+        }
+        return RedirectToAction(nameof(Index));
     }
 
     private List<Product> GenerateMillion() => Enumerable.Range(1, 1000000).Select(i => new Product

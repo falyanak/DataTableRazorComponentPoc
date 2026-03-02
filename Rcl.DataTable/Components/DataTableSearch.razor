@@ -2,41 +2,55 @@
 @code {
     [Parameter] public string TableId { get; set; } = "";
     [Parameter] public SearchViewModel Model { get; set; } = new();
+    [Parameter] public int TotalFound { get; set; } // Nombre d'items filtrés transmis par le parent
 }
 
 <div class="dt-search-wrapper p-3 border-bottom bg-light">
-    <div class="position-relative">
-        <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="bi bi-search text-muted"></i>
-            </span>
-            <input type="text" 
-                   name="searchTerm" 
-                   id="search-@TableId"
-                   value="@Model.SearchTerm"
-                   class="form-control border-start-0 shadow-none pe-5" 
-                   placeholder="@Model.Placeholder"
-                   hx-get="@Model.SearchUrl" 
-                   hx-trigger="keyup changed delay:500ms, search" 
-                   hx-target="#dt-@TableId" 
-                   hx-swap="outerHTML"
-                   hx-indicator=".dt-loader-@TableId" />
-            
-            @* Bouton de suppression (X) *@
-            @if (!string.IsNullOrEmpty(Model.SearchTerm))
-            {
-                <button type="button" 
-                        class="btn position-absolute end-0 top-50 translate-middle-y border-0 z-3 text-muted"
-                        style="right: 10px !important;"
-                        hx-get="@Model.SearchUrl?searchTerm=" 
-                        hx-target="#dt-@TableId"
-                        hx-swap="outerHTML">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            }
+    <div class="d-flex align-items-center gap-3">
+        <div class="position-relative flex-grow-1">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 shadow-sm">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" 
+                       name="searchTerm" 
+                       value="@Model.SearchTerm"
+                       class="form-control border-start-0 shadow-sm pe-5" 
+                       placeholder="@Model.Placeholder"
+                       autocomplete="off"
+                       hx-get="@Model.SearchUrl" 
+                       hx-trigger="keyup changed delay:1000ms, search" 
+                       hx-target="#dt-@TableId" 
+                       hx-swap="outerHTML"
+                       hx-indicator=".dt-loader-@TableId" />
+                
+                @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    @* le bouton effacer *@
+                    <button type="button" 
+                            class="btn btn-link text-decoration-none position-absolute end-0 top-50 translate-middle-y z-3 me-2 text-danger"
+                            hx-get="@Model.EraseSearchUrl" 
+                            hx-target="#dt-@TableId"
+                            hx-swap="outerHTML">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                }
+            </div>
         </div>
+
+        @* AFFICHAGE DU COMPTEUR À PROXIMITÉ *@
+        @if (!string.IsNullOrEmpty(Model.SearchTerm))
+        {
+            <div class="search-result-count animate__animated animate__fadeIn">
+                <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                    <i class="bi bi-filter-circle-fill me-1"></i>
+                    <strong>@TotalFound.ToString("N0")</strong> @(TotalFound > 1 ? "résultats" : "résultat")
+                </span>
+            </div>
+        }
     </div>
-    <div class="progress htmx-indicator dt-loader-@TableId" style="height: 2px; margin-top: 2px;">
+    
+    <div class="progress htmx-indicator dt-loader-@TableId" style="height: 2px; margin-top: 4px;">
         <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
     </div>
 </div>
