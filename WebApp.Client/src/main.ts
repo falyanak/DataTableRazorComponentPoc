@@ -1,14 +1,21 @@
+import { initDataTable } from '../../Rcl.DataTable/src/main'; // Import du moteur de DataTable depuis le projet Rcl.DataTable
+import { ThemeManager } from './ThemeManager';
+
+// Déclaration pour l'accès global depuis le HTML (Boutons de thème)
+declare global {
+    interface Window { 
+        themeManager: ThemeManager; 
+    }
+}
+
 const AppManager = {
     init(): void {
-        document.addEventListener('click', (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
+        initDataTable(); // Initialisation du moteur de DataTable
 
-            // GESTION DES ONGLETS (Purement visuel, pas de data)
-            const tab = target.closest('#productTabs .nav-link');
-            if (tab) {
-                this.handleTabClick(tab as HTMLElement);
-            }
-        });
+        // Initialisation du gestionnaire de thèmes
+        window.themeManager = new ThemeManager('theme-wrapper', 'client-theme-styles');   
+
+        console.log("AppManager : Initialisé avec succès (Themes + Tabs)");
     },
 
     handleTabClick(tab: HTMLElement): void {
@@ -20,4 +27,5 @@ const AppManager = {
     }
 };
 
+// Lancement au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => AppManager.init());

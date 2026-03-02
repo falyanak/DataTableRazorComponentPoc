@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "esbuild": "^0.27.3"
+  },
+  "scripts": {
+  "watch": "node esbuild.config.js",
+  "build": "esbuild src/main.ts --bundle --outfile=wwwroot/dist/main.bundle.js --minify --sourcemap"
+}
+}

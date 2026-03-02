@@ -1,0 +1,15 @@
+.theme-dark-modern .dt-container {
+    --dt-primary: #37bcf8;          /* Bleu électrique */
+    --dt-bg-header: #1e293b;        /* Bleu ardoise foncé */
+    --dt-text-header: #f8fafc;      /* Blanc cassé */
+    --dt-row-hover: #334155;        /* Gris-bleu léger */
+    --dt-footer-bg: #0f172a;        /* Fond très sombre */
+    --dt-border-color: #334155;
+    background-color: #1e293b;
+    color: #cbd5e1;
+}
+
+/* On adapte les cellules pour le mode sombre */
+.theme-dark-modern .table { color: #cbd5e1; }
+.theme-dark-modern .btn-group-flexible { background: #1e293b; }
+.theme-dark-modern .page-info-text { background: #0f172a; color: #fff; }

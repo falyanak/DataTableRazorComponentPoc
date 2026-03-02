@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noEmit": true, /* Crucial : dit à TS de ne pas générer de fichiers lui-même */
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/ts/*", "../../Rcl.DataTable/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "../../Rcl.DataTable/src/**/*.ts"]
+}

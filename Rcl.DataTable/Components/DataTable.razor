@@ -129,6 +129,6 @@
 }
 
 @code {
-    [Parameter] public DataTableViewModel<TItem, TKey> Model { get; set; }
+    [Parameter] public DataTableViewModel<TItem, TKey>? Model { get; set; }
     [Parameter] public Func<TItem, List<TableAction>>? GetActions { get; set; }
 }

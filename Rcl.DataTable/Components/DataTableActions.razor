@@ -1,5 +1,4 @@
 @using Rcl.DataTable.Models
-@inject NavigationManager Navigation
 
 @if (Actions != null && Actions.Any())
 {
@@ -7,24 +6,28 @@
         @foreach (var action in Actions)
         {
             var borderClass = action != Actions.First() ? "border-start" : "";
-            
-            @if (action.IsDelete)
+
+            if (action.IsDelete)
             {
+                @* Pour la suppression, on reste sur un formulaire standard *@
                 <form action="@action.Url" method="post" class="d-inline">
+
                     <button type="submit" class="btn btn-white @action.ColorClass @borderClass"
-                            onclick="return confirm('@action.Title ?');" title="@action.Title">
+                            onclick="return confirm('Confirmer la suppression : @action.Title ?');" 
+                            title="@action.Title">
                         <i class="bi @action.Icon"></i>
                     </button>
                 </form>
             }
             else
             {
-                @* Le lien devient un bouton physique *@
-                <button type="button" class="btn btn-white @action.ColorClass @borderClass" 
-                        title="@action.Title"
-                        @onclick="() => NavigateTo(action.Url)">
-                    <i class="bi @action.Icon"></i>
-                </button>
+                @* On utilise la classe btn-dt-action pour notre script esbuild *@
+               <form action="@action.Url" method="get" class="d-inline">
+                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass" 
+                            title="@action.Title">
+                        <i class="bi @action.Icon"></i>
+                    </button>
+                </form>
             }
         }
     </div>
@@ -32,12 +35,6 @@
 
 @code {
     [Parameter, EditorRequired] public List<TableAction> Actions { get; set; } = new();
-
-    private void NavigateTo(string url)
-    {
-        if (!string.IsNullOrEmpty(url))
-        {
-            Navigation.NavigateTo(url);
-        }
-    }
+    
+    // Note : On n'utilise plus NavigateTo() ici car c'est le JS qui prend le relais
 }

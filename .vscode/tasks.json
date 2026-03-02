@@ -2,25 +2,26 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "1. Build TS (Rcl.DataTable)",
+            "label": "ts-watch",
             "type": "shell",
-            "command": "npx tsc src/main.ts --outFile wwwroot/js/datatable.js --target es6 --lib dom,es2015",
+            "command": "npm run watch",
             "options": {
-                "cwd": "${workspaceFolder}/Rcl.DataTable"
+                "cwd": "${workspaceFolder}/WebApp.Client"
             },
+            "isBackground": true,
             "problemMatcher": "$tsc"
         },
         {
-            "label": "2. Build TS (WebApp.Client)",
+            "label": "ts-check",
             "type": "shell",
-            "command": "npx tsc src/main.ts --outFile wwwroot/js/main.js --target es6 --lib dom,es2015",
+            "command": "npx tsc --noEmit",
             "options": {
                 "cwd": "${workspaceFolder}/WebApp.Client"
             },
             "problemMatcher": "$tsc"
         },
         {
-            "label": "3. Build .NET (WebApp.Client)",
+            "label": "dotnet-build",
             "type": "process",
             "command": "dotnet",
             "args": [
@@ -30,12 +31,11 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "FULL BUILD (TS + .NET)",
+            "label": "FULL-BUILD",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "1. Build TS (Rcl.DataTable)",
-                "2. Build TS (WebApp.Client)",
-                "3. Build .NET (WebApp.Client)"
+                "ts-check",
+                "dotnet-build"
             ],
             "group": {
                 "kind": "build",

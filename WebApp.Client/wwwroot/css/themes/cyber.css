@@ -1,0 +1,11 @@
+.theme-cyber .dt-container {
+    --dt-primary: #00ff41;          /* Vert Matrix */
+    --dt-bg-header: #000000;
+    --dt-text-header: #00ff41;
+    --dt-row-hover: rgba(0, 255, 65, 0.1);
+    --dt-radius: 0px;               /* Angles vifs */
+    --dt-footer-bg: #000;
+    --dt-border-color: #00ff41;
+}
+
+.theme-cyber .table { font-family: 'Courier New', monospace; }

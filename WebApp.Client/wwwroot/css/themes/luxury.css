@@ -1,0 +1,16 @@
+.theme-luxury .dt-container {
+    --dt-primary: #b8860b;          /* Or foncé */
+    --dt-bg-header: #ffffff;
+    --dt-text-header: #2c2c2c;
+    --dt-row-hover: #fcfcfc;
+    --dt-radius: 20px;              /* Bordures très arrondies */
+    --dt-footer-bg: #ffffff;
+    --dt-border-color: #e5e5e5;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+}
+
+.theme-luxury .clickable-header {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+}
