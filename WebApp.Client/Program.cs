@@ -1,5 +1,9 @@
 var builder = WebApplication.CreateBuilder(args);
 
+// Ajoute l'accès au contexte HTTP (nécessaire pour le jeton)
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddAntiforgery();
+
 // 1. Activation du cache pour mémoriser l'ID sélectionné
 builder.Services.AddMemoryCache();
 

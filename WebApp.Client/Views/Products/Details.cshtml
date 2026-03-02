@@ -16,12 +16,16 @@
         <div class="card-body p-0">
             <ul class="nav nav-tabs px-3 pt-3 bg-light" id="productTabs">
                 <li class="nav-item">
-                    <button class="nav-link active" hx-get="/Products/GetDescription/@Model.Id" hx-target="#tab-content">
+                    <button class="nav-link active" 
+                    hx-get="/Products/GetDescription/@Model.Id" 
+                    hx-target="#tab-content">
                         <i class="bi bi-info-circle"></i> Description
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" hx-get="/Products/GetSpecification/@Model.Id" hx-target="#tab-content">
+                    <button class="nav-link" 
+                    hx-get="/Products/GetSpecification/@Model.Id" 
+                    hx-target="#tab-content">
                         <i class="bi bi-list-check"></i> Spécifications
                     </button>
                 </li>

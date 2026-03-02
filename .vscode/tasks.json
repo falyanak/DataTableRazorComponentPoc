@@ -2,14 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "ts-watch",
+            "label": "ts-build",
             "type": "shell",
-            "command": "npm run watch",
+            "command": "node esbuild.config.js", 
             "options": {
                 "cwd": "${workspaceFolder}/WebApp.Client"
             },
-            "isBackground": true,
-            "problemMatcher": "$tsc"
+            "problemMatcher": []
         },
         {
             "label": "ts-check",
@@ -34,6 +33,7 @@
             "label": "FULL-BUILD",
             "dependsOrder": "sequence",
             "dependsOn": [
+                "ts-build",    // <--- ON GÉNÈRE LE BUNDLE ICI
                 "ts-check",
                 "dotnet-build"
             ],

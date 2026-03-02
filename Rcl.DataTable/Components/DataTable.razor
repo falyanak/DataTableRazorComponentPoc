@@ -8,6 +8,12 @@
     @* L'ID est porté par le conteneur racine qui sera remplacé par hx-swap *@
     <div class="dt-container border rounded bg-white shadow-sm d-flex flex-column" id="dt-@Model.TableId">
 
+        @* ENCAPSULATION : On teste la visibilité ici *@
+        @if (Model.Search.IsVisible && !string.IsNullOrEmpty(Model.Search.SearchUrl))
+        {
+            <DataTableSearch TableId="@Model.TableId" Model="@Model.Search" />
+        }
+
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light text-nowrap">
@@ -15,9 +21,7 @@
                         @foreach (var col in Model.Columns)
                         {
                             @* Correction : Ajout de hx-swap="outerHTML" pour le tri *@
-                            <th hx-get="@Model.GetSortUrl(col.Item2)" 
-                                hx-target="#dt-@Model.TableId"
-                                hx-swap="outerHTML"
+                            <th hx-get="@Model.GetSortUrl(col.Item2)"              hx-target="#dt-@Model.TableId"                     hx-swap="outerHTML"
                                 class="user-select-none clickable-header">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span>@col.Item1</span>
@@ -67,9 +71,7 @@
                     <span class="small text-muted text-nowrap">Afficher</span>
                     @* Correction : Ajout de hx-swap="outerHTML" pour le changement de taille *@
                     <select class="form-select form-select-sm shadow-sm" name="pageSize"
-                            hx-get="@Model.GetPageUrl(1).Split('?')[0]" 
-                            hx-target="#dt-@Model.TableId" 
-                            hx-swap="outerHTML"
+                            hx-get="@Model.GetPageUrl(1).Split('?')[0]"            hx-target="#dt-@Model.TableId"                hx-swap="outerHTML"
                             hx-trigger="change">
                         @foreach (var option in Model.PageSizeOptions)
                         {
@@ -106,7 +108,8 @@
                     </span>
 
                     <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
+                            disabled="@(Model.CurrentPage >= Model.TotalPages)">
                         <i class="bi bi-chevron-right"></i>
                     </button>
 
@@ -114,7 +117,8 @@
                         var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10);
                     }
                     <button class="btn btn-sm btn-light border-0 d-none d-sm-flex" hx-get="@Model.GetPageUrl(nextBlock)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
+                            disabled="@(Model.CurrentPage >= Model.TotalPages)">
                         <i class="bi bi-chevron-double-right"></i>
                     </button>
 

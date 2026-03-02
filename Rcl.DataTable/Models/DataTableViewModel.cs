@@ -26,6 +26,14 @@ public class DataTableViewModel<TItem, TKey>
     public int PageSize { get; set; } = 10;
     public List<int> PageSizeOptions { get; set; } = [10, 20, 50, 100];
 
+    public SearchViewModel Search { get; set; } = new(); 
+
+    // Important : Ton générateur d'URL doit inclure le SearchTerm pour que 
+    // la pagination et le tri conservent le filtre actif.
+    public string GetFullUrl(string baseUrl) {
+        return $"{baseUrl}?searchTerm={Search.SearchTerm}&sort={SortColumn}&isAsc={IsAsc}&page={CurrentPage}";
+    }
+
  public bool HasActionButton { get; set; }
 
     // Pattern pour l'URL, ex: "/Products/Details/{0}"

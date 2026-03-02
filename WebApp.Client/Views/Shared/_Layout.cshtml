@@ -27,8 +27,8 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     @* <script src="~/_content/Rcl.DataTable/js/datatable.js"></script> *@
-  <script src="~/dist/main.bundle.js" asp-append-version="true"></script>
-  
+  <script src="~/dist/main.bundle.js" asp-append-version="true" defer></script>
+ 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (Web)",
+            "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "FULL BUILD (TS + .NET)",
+            "preLaunchTask": "FULL-BUILD", // <--- DOIT CORRESPONDRE AU LABEL DANS tasks.json
             "program": "${workspaceFolder}/WebApp.Client/bin/Debug/net8.0/WebApp.Client.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WebApp.Client",
@@ -18,7 +18,7 @@
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
-                "/Views": "${workspaceFolder}/WebApp.Client/Views"
+                "/Views": "${workspaceFolder}/Views"
             }
         }
     ]

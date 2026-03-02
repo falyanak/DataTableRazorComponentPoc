@@ -19,13 +19,15 @@ public class ProductsController(IMemoryCache cache) : Controller
         }) ?? new List<Product>();
     }
 
-    public IActionResult Index(int page = 1, string? sort = null, int pageSize = 10)
+    public IActionResult Index(int page = 1, string? sort = null, int pageSize = 10, string? searchTerm = null)
     {
         var state = cache.Get<DataTableState<Guid>>(StateCacheKey) ?? new DataTableState<Guid>();
 
-        if (state.PageSize != pageSize)
+        // Mise à jour de l'état avec le nouveau terme de recherche
+        // Si le terme change, on repasse généralement à la page 1
+        if (state.SearchTerm != searchTerm)
         {
-            state.PageSize = pageSize;
+            state.SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm;
             state.PageIndex = 1;
         }
         else
@@ -44,7 +46,8 @@ public class ProductsController(IMemoryCache cache) : Controller
         return BuildTableResult(state);
     }
 
-    [HttpPost] 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Delete(Guid id)
     {
         var data = GetCachedData();
@@ -76,13 +79,23 @@ public class ProductsController(IMemoryCache cache) : Controller
     // --- LOGIQUE DE RENDU PARTIEL ---
     private IActionResult BuildTableResult(DataTableState<Guid> state)
     {
-        var data = GetCachedData(); 
+        var data = GetCachedData();
+
+        // --- LOGIQUE DE FILTRAGE AVANT PAGINATION ---
+        if (!string.IsNullOrWhiteSpace(state.SearchTerm))
+        {
+            var term = state.SearchTerm.ToLower();
+            data = data.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.Description.ToLower().Contains(term)
+            ).ToList();
+        }
         var vm = new DataTableViewModel<Product, Guid>
         {
             TableId = "prod-grid",
             Items = data,
             CurrentPage = state.PageIndex,
-            PageSize = state.PageSize,     
+            PageSize = state.PageSize,
             SelectedId = state.SelectedId,
             SortColumn = state.SortColumn,
             IsAsc = state.IsAscending,
@@ -95,7 +108,15 @@ public class ProductsController(IMemoryCache cache) : Controller
                 ("Nom", "Name"),
                 ("Prix", "Price"),
                 ("Consulté", "LastConsulted")
-            ]
+            ],
+            // On configure le sous-modèle de recherche
+            Search = new SearchViewModel
+            {
+                IsVisible = true,
+                SearchTerm = state.SearchTerm,
+                SearchUrl = Url.Action("Index", "Products"), // L'Index gère tout maintenant
+                Placeholder = "Rechercher un produit..."
+            }
         };
 
         vm.ProcessData(state.PageSize);
@@ -104,11 +125,13 @@ public class ProductsController(IMemoryCache cache) : Controller
         // On renvoie uniquement le fichier .razor sans le Layout global.
         if (Request.Headers.ContainsKey("HX-Request"))
         {
-            return PartialView("_TablePartial", vm); 
+            return PartialView("_TablePartial", vm);
         }
 
         // Sinon (chargement initial), on renvoie la vue complète avec le Layout.
-        return View("Index", vm);
+       return Request.Headers.ContainsKey("HX-Request") 
+        ? PartialView("_TablePartial", vm) 
+        : View("Index", vm);
     }
 
     private List<Product> GenerateMillion() => Enumerable.Range(1, 1000000).Select(i => new Product
@@ -118,4 +141,22 @@ public class ProductsController(IMemoryCache cache) : Controller
         Name = $"Produit Haute Performance {i}",
         Price = i * 0.45m
     }).ToList();
+
+    public IActionResult GetDescription(Guid id)
+    {
+        var data = GetCachedData();
+        var product = data.FirstOrDefault(p => p.Id == id);
+        if (product == null) return NotFound();
+
+        return Content($"Description du produit :\n{product.Name} - {product.Description}\nPrix : {product.Price:C}");
+    }
+
+    public IActionResult GetSpecification(Guid id)
+    {
+        var data = GetCachedData();
+        var product = data.FirstOrDefault(p => p.Id == id);
+        if (product == null) return NotFound();
+
+        return Content("Spécifications techniques du produit :\n- Poids : 1kg\n- Dimensions : 10x20x30cm\n- Couleur : Rouge\n- Garantie : 2 ans");
+    }
 }

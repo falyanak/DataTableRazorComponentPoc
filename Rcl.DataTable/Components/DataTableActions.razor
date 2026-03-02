@@ -1,19 +1,28 @@
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Http
 @using Rcl.DataTable.Models
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
 
 @if (Actions != null && Actions.Any())
 {
-    <div class="btn-group btn-group-sm" onclick="event.stopPropagation();">
+    <div class="btn-group btn-group-sm dt-actions-container">
         @foreach (var action in Actions)
         {
             var borderClass = action != Actions.First() ? "border-start" : "";
 
-            if (action.IsDelete)
+            @if (action.IsDelete)
             {
-                @* Pour la suppression, on reste sur un formulaire standard *@
-                <form action="@action.Url" method="post" class="d-inline">
+                @* Ajout de hx-post et hx-target pour une suppression sans rechargement *@
+                <form hx-post="@action.Url" hx-target="#dt-prod-grid" hx-swap="outerHTML" class="d-inline dt-form-delete">
 
-                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass"
-                            onclick="return confirm('Confirmer la suppression : @action.Title ?');" 
+                    @* Ton code de jeton Antiforgery reste identique *@
+                    @{
+                        var tokens = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext!);
+                    }
+                    <input type="hidden" name="@tokens.FormFieldName" value="@tokens.RequestToken" />
+
+                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass" data-confirm="@action.Title ?"
                             title="@action.Title">
                         <i class="bi @action.Icon"></i>
                     </button>
@@ -21,10 +30,8 @@
             }
             else
             {
-                @* On utilise la classe btn-dt-action pour notre script esbuild *@
-               <form action="@action.Url" method="get" class="d-inline">
-                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass" 
-                            title="@action.Title">
+                <form action="@action.Url" method="get" class="d-inline">
+                    <button type="submit" class="btn btn-white @action.ColorClass @borderClass" title="@action.Title">
                         <i class="bi @action.Icon"></i>
                     </button>
                 </form>
@@ -35,6 +42,4 @@
 
 @code {
     [Parameter, EditorRequired] public List<TableAction> Actions { get; set; } = new();
-    
-    // Note : On n'utilise plus NavigateTo() ici car c'est le JS qui prend le relais
 }

@@ -1,7 +1,6 @@
-import { initDataTable } from '../../Rcl.DataTable/src/main'; // Import du moteur de DataTable depuis le projet Rcl.DataTable
+import { initDataTable } from '../../Rcl.DataTable/src/main'; 
 import { ThemeManager } from './ThemeManager';
 
-// Déclaration pour l'accès global depuis le HTML (Boutons de thème)
 declare global {
     interface Window { 
         themeManager: ThemeManager; 
@@ -10,12 +9,37 @@ declare global {
 
 const AppManager = {
     init(): void {
-        initDataTable(); // Initialisation du moteur de DataTable
+        // 1. On initialise la structure technique de la DataTable (Scroll HTMX, etc.)
+        initDataTable(); 
 
-        // Initialisation du gestionnaire de thèmes
+        // 2. Thèmes
         window.themeManager = new ThemeManager('theme-wrapper', 'client-theme-styles');   
 
-        console.log("AppManager : Initialisé avec succès (Themes + Tabs)");
+        // 3. UNIQUE LISTENER pour toute l'application (Délégation)
+        document.addEventListener('click', (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+
+            // --- LOGIQUE DE SUPPRESSION (MÉTIER) ---
+            // Le client sait qu'il utilise la classe '.dt-form-delete'
+            const deleteBtn = target.closest('.dt-form-delete button[type="submit"]');
+            if (deleteBtn) {
+                const message = deleteBtn.getAttribute('data-confirm');
+                if (message && !confirm(message)) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return; // On s'arrête là
+                }
+            }
+
+            // --- LOGIQUE DES ONGLETS (MÉTIER) ---
+            const tab = target.closest('#productTabs .nav-link') as HTMLElement;
+            if (tab) {
+                this.handleTabClick(tab);
+                return;
+            }
+        });
+
+        console.log("AppManager : Initialisé (Logique métier centralisée)");
     },
 
     handleTabClick(tab: HTMLElement): void {
@@ -27,5 +51,4 @@ const AppManager = {
     }
 };
 
-// Lancement au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => AppManager.init());

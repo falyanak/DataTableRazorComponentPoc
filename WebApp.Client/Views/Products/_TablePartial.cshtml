@@ -4,7 +4,7 @@
     Func<Product, List<TableAction>> productActions = (p) => new List<TableAction>
     {
         new() { Icon = "bi-eye-fill", Title = "Détails", Url = $"/Products/Details/{p.Id}" },
-        new() { Icon = "bi-trash3-fill", Title = "Supprimer", Url = $"/Products/Delete/{p.Id}", 
+        new() { Icon = "bi-trash3-fill", Title = "Supprimer le produit", Url = $"/Products/Delete/{p.Id}", 
                 ColorClass = "text-danger", IsDelete = true }
     };
 }
