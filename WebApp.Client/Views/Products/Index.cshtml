@@ -10,10 +10,11 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Catalogue des produits</h1>
-        <span class="badge bg-primary">@itemCountInfo</span>
-    </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Catalogue des produits</h1>
+    @* On ajoute l'ID et l'attribut OOB par défaut pour la cohérence *@
+    <span id="main-product-badge" class="badge bg-primary">@itemCountInfo</span>
+</div>
 
     @* Conteneur HTMX : C'est ici que les futures pages s'injecteront *@
     <div id="product-table-container">

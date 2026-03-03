@@ -20,21 +20,24 @@ public class DataTableViewModel<TItem, TKey>
     public int TotalPages { get; set; }
     public int TotalItems { get; set; }
 
+    public int FilteredCount { get; set; }
+
     public string? SortColumn { get; set; }
     public bool IsAsc { get; set; }
 
     public int PageSize { get; set; } = 10;
     public List<int> PageSizeOptions { get; set; } = [10, 20, 50, 100];
 
-    public SearchViewModel Search { get; set; } = new(); 
+    public SearchViewModel Search { get; set; } = new();
 
     // Important : Ton générateur d'URL doit inclure le SearchTerm pour que 
     // la pagination et le tri conservent le filtre actif.
-    public string GetFullUrl(string baseUrl) {
+    public string GetFullUrl(string baseUrl)
+    {
         return $"{baseUrl}?searchTerm={Search.SearchTerm}&sort={SortColumn}&isAsc={IsAsc}&page={CurrentPage}";
     }
 
- public bool HasActionButton { get; set; }
+    public bool HasActionButton { get; set; }
 
     // Pattern pour l'URL, ex: "/Products/Details/{0}"
     public string DetailUrlPattern { get; set; } = string.Empty;
@@ -42,11 +45,32 @@ public class DataTableViewModel<TItem, TKey>
 
     public string GetPageUrl(int page)
     {
-        // On propage systématiquement la taille de page, le tri et l'ordre
-        return $"/Products/Index?page={page}&pageSize={PageSize}&sort={SortColumn}";
+        // On utilise l'état actuel pour reconstruire l'URL de navigation
+        var url = $"?page={page}&pageSize={PageSize}";
+
+        if (!string.IsNullOrEmpty(SortColumn))
+            url += $"&sort={SortColumn}";
+
+        // On récupère le terme depuis le sous-modèle Search (qui vient du State)
+        if (!string.IsNullOrEmpty(Search.SearchTerm))
+            url += $"&searchTerm={Uri.EscapeDataString(Search.SearchTerm)}";
+
+        return url;
     }
 
-    public string GetSortUrl(string prop) => $"/Products?sort={prop}";
+    // On fait de même pour le tri pour ne pas perdre la recherche en triant
+    public string GetSortUrl(string column)
+    {
+        var url = $"?page=1&pageSize={PageSize}&sort={column}";
+
+        if (!string.IsNullOrEmpty(Search.SearchTerm))
+        {
+            url += $"&searchTerm={Uri.EscapeDataString(Search.SearchTerm)}";
+        }
+
+        return url;
+    }
+
     public string GetFormattedValue(TItem item, string propName)
     {
         var prop = typeof(TItem).GetProperty(propName);
@@ -66,8 +90,8 @@ public class DataTableViewModel<TItem, TKey>
     public string GetInfoPagePositionFormattedValue()
     {
         var culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
-        var infoPage =  $"Page {CurrentPage.ToString("N0", culture)} / {TotalPages.ToString("N0", culture)}";
-        return infoPage;    
+        var infoPage = $"Page {CurrentPage.ToString("N0", culture)} / {TotalPages.ToString("N0", culture)}";
+        return infoPage;
     }
 
     public void ProcessData(int pageSize)

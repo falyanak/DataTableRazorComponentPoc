@@ -23,20 +23,26 @@ public class ProductsController(IMemoryCache cache) : Controller
     {
         var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
 
-        state.PageSize = pageSize;
-
-        // Mise à jour de l'état avec le nouveau terme de recherche
-        // Si le terme change, on repasse généralement à la page 1
-        // true si searchTerm est différent de l'actuel, ou si c'est la première fois qu'on le définit
+        // 1. Détection du changement de recherche
+        // On ne recalcule la liste filtrée que si le terme a réellement changé
         if (state.SearchTerm != searchTerm)
         {
-            state.SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm;
+            state.SearchTerm = searchTerm;
             state.PageIndex = 1;
+
+            var allData = GetCachedData();
+
+            // On stocke la liste filtrée (ou complète) UNE SEULE FOIS dans le state
+            state.FilteredItems = state.IsFiltered
+                ? allData.Where(p => p.Name.Contains(searchTerm!, StringComparison.OrdinalIgnoreCase)
+                                  || p.Description.Contains(searchTerm!, StringComparison.OrdinalIgnoreCase)
+                ).ToList()
+                : allData;
         }
-        else
-        {
-            state.PageIndex = page;
-        }
+
+        // 2. Mise à jour des paramètres de navigation
+        state.PageIndex = page;
+        state.PageSize = pageSize;
 
         if (sort != null)
         {
@@ -46,20 +52,93 @@ public class ProductsController(IMemoryCache cache) : Controller
 
         cache.Set(StateCacheKey, state);
 
+        // On passe un état "prêt à l'emploi" au constructeur de vue
         return BuildTableResult(state);
+    }
+
+    private IActionResult BuildTableResult(DataTableState<Product, Guid> state)
+    {
+        // Plus besoin de filtrer ici ! On utilise ce qui est dans le state.
+        // Si FilteredItems est vide et qu'on n'est pas filtré, on prend la source brute par sécurité.
+        var data = (state.FilteredItems.Any() || state.IsFiltered)
+                   ? state.FilteredItems
+                   : GetCachedData();
+
+        var vm = new DataTableViewModel<Product, Guid>
+        {
+            TableId = "prod-grid",
+            Items = data, // ProcessData fera le Skip/Take sur cette liste
+            CurrentPage = state.PageIndex,
+            PageSize = state.PageSize,
+            SelectedId = state.SelectedId,
+            SortColumn = state.SortColumn,
+            IsAsc = state.IsAscending,
+            KeySelector = p => p.Id,
+            HasActionButton = true,
+            TotalItems = data.Count, // Toujours le million d'origine
+            FilteredCount = data.Count, // Nombre après filtrage
+            Columns = [
+                ("N°", "Id"),
+            ("Référence", "Description"),
+            ("Nom", "Name"),
+            ("Prix", "Price"),
+            ("Consulté", "LastConsulted")
+            ],
+            Search = new SearchViewModel
+            {
+                IsVisible = true,
+                SearchTerm = state.SearchTerm,
+                SearchUrl = Url.Action("Index", "Products"),
+                EraseSearchUrl = Url.Action("EraseSearchFilter", "Products"),
+                Placeholder = "Rechercher un produit..."
+            }
+        };
+
+        vm.ProcessData(state.PageSize);
+
+        return Request.Headers.ContainsKey("HX-Request")
+             ? PartialView("_TablePartial", vm)
+             : View("Index", vm);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Delete(Guid id)
     {
-        var data = GetCachedData();
-        var item = data.FirstOrDefault(p => p.Id == id);
+        // 1. Mise à jour de la source globale (Le million)
+        var allData = GetCachedData();
+        var item = allData.FirstOrDefault(p => p.Id == id);
 
         if (item != null)
         {
-            data.Remove(item);
-            cache.Set(DataCacheKey, data);
+            allData.Remove(item);
+            cache.Set(DataCacheKey, allData);
+
+            // 2. Mise à jour de la vue filtrée dans le State
+            var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
+            if (state != null)
+            {
+                // On retire l'objet de la liste filtrée si elle le contient
+                var filteredItem = state.FilteredItems.FirstOrDefault(p => p.Id == id);
+                if (filteredItem != null)
+                {
+                    state.FilteredItems.Remove(filteredItem);
+
+                    // Si la page actuelle devient vide après suppression (ex: dernier item de la page 5)
+                    // On peut optionnellement reculer d'une page
+                    if (!state.FilteredItems.Any(p => true) && state.PageIndex > 1)
+                        state.PageIndex--;
+
+                    cache.Set(StateCacheKey, state);
+                }
+            }
+        }
+
+        // 3. Rendu fluide via HTMX
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            var currentState = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
+            return BuildTableResult(currentState!);
         }
 
         return RedirectToAction(nameof(Index));
@@ -77,78 +156,6 @@ public class ProductsController(IMemoryCache cache) : Controller
 
         product.LastConsulted = DateTime.Now;
         return View(product);
-    }
-
-    // --- LOGIQUE DE RENDU PARTIEL ---
-    private IActionResult BuildTableResult(DataTableState<Product, Guid> state)
-    {
-        List<Product> data;
-
-        // on détecte une navigation avec même terme de recherche filtré et des résultats déjà calculés
-        if (state.IsFiltered && state.FilteredItems.Any())
-        {
-            data = state.FilteredItems;
-        }
-        else
-        {
-            // Sinon, on procède au filtrage classique à partir de la source complète
-            data = GetCachedData();
-
-            // --- LOGIQUE DE FILTRAGE AVANT PAGINATION ---
-            if (!string.IsNullOrWhiteSpace(state.SearchTerm))
-            {
-                var term = state.SearchTerm.ToLower();
-                data = data.Where(p =>
-                    p.Name.ToLower().Contains(term) ||
-                    p.Description.ToLower().Contains(term)
-                ).ToList();
-
-                state.FilteredItems = data;
-            }
-            else
-            {
-                state.FilteredItems = [];
-            }
-        }
-
-        var vm = new DataTableViewModel<Product, Guid>
-        {
-            TableId = "prod-grid",
-            Items = data,
-            CurrentPage = state.PageIndex,
-            PageSize = state.PageSize,
-            SelectedId = state.SelectedId,
-            SortColumn = state.SortColumn,
-            IsAsc = state.IsAscending,
-            KeySelector = p => p.Id,
-            HasActionButton = true,
-            TotalItems = data.Count,
-            Columns = [
-                ("N°", "Id"),
-                ("Référence", "Description"),
-                ("Nom", "Name"),
-                ("Prix", "Price"),
-                ("Consulté", "LastConsulted")
-            ],
-            // On configure le sous-modèle de recherche
-            Search = new SearchViewModel
-            {
-                IsVisible = true,
-                SearchTerm = state.SearchTerm,
-                SearchUrl = Url.Action("Index", "Products"), // L'Index gère tout maintenant
-                EraseSearchUrl = Url.Action("EraseSearchFilter", "Products"),
-                Placeholder = "Rechercher un produit..."
-            }
-        };
-
-        vm.ProcessData(state.PageSize);
-
-        // DÉTECTION HTMX : Si l'en-tête HX-Request est présent
-        // On renvoie uniquement le fichier .razor sans le Layout global.
-        // Sinon (chargement initial), on renvoie la vue complète avec le Layout.
-        return Request.Headers.ContainsKey("HX-Request")
-         ? PartialView("_TablePartial", vm)
-         : View("Index", vm);
     }
 
     public IActionResult EraseSearchFilter()

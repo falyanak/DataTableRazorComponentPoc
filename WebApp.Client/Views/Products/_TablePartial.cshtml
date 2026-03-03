@@ -1,5 +1,13 @@
 @using Rcl.DataTable.Models
 
+@* Le badge "fantôme" qui va mettre à jour le badge de Index.cshtml *@
+@* @{
+    int count = Model.TotalItems;
+    string info = count == 0 ? "Aucun item" : count == 1 ? "1 item" : 
+               count.ToString("N0", new System.Globalization.CultureInfo("fr-FR")) + " items";
+}
+<span id="main-product-badge" class="badge bg-primary" hx-swap-oob="true">@info</span> *@
+
 @{
     Func<Product, List<TableAction>> productActions = (p) => new List<TableAction>
     {

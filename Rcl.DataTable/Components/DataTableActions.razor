@@ -14,7 +14,10 @@
             @if (action.IsDelete)
             {
                 @* Ajout de hx-post et hx-target pour une suppression sans rechargement *@
-                <form hx-post="@action.Url" hx-target="#dt-prod-grid" hx-swap="outerHTML" class="d-inline dt-form-delete">
+                <form 
+                    hx-post="@action.Url" 
+                    hx-target="#dt-prod-grid" 
+                    hx-swap="outerHTML" class="d-inline dt-form-delete">
 
                     @* Ton code de jeton Antiforgery reste identique *@
                     @{
