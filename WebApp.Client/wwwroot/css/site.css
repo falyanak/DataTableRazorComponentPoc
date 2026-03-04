@@ -1,6 +1,5 @@
-/* --- 1. STRUCTURE FLEXBOX FLUIDE (ANTI-COUPE) --- */
+/* --- 1. STRUCTURE & HAUTEUR (FIX STICKY FOOTER) --- */
 html {
-    /* On utilise min-height pour permettre l'extension infinie du tableau */
     min-height: 100%;
     font-size: 14px;
 }
@@ -10,7 +9,6 @@ html {
 }
 
 body {
-    /* On force le body à être un conteneur flex occupant au moins l'écran */
     min-height: 100vh;
     margin: 0;
     display: flex;
@@ -20,29 +18,39 @@ body {
     color: #212529;
 }
 
-/* Le wrapper s'étire pour occuper tout l'espace disponible */
+/* Conteneur principal flexible */
 #theme-wrapper {
     display: flex;
     flex-direction: column;
-    flex: 1 0 auto; /* Autorise la croissance sans limite */
+    flex: 1 0 auto;
     width: 100%;
 }
 
-/* Le main "pousse" le footer vers le bas */
 main {
     flex: 1 0 auto;
 }
 
-/* Le footer : Suppression du positionnement absolute/fixed qui coupait le tableau */
+/* --- 2. FOOTER COMPACT & LIENS --- */
 .footer {
-    position: static !important; /* Force le retour dans le flux normal */
-    flex-shrink: 0; /* Empêche le footer d'être écrasé */
-    background-color: #f8f9fa;
-    padding: 1.5rem 0;
+    position: static !important; /* Force le retour dans le flux pour ne pas couper la table */
+    flex-shrink: 0;
+    padding: 0.5rem 0 !important; 
     width: 100%;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
 }
 
-/* --- 2. THÈME SOMBRE (RACINE) --- */
+/* Style des liens par défaut (Mode Clair) */
+.footer a {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* --- 3. THÈME SOMBRE (RACINE & SURFACES) --- */
 
 html.theme-dark, 
 html.theme-dark body,
@@ -57,22 +65,31 @@ html.theme-dark .container-fluid {
     background-color: transparent !important;
 }
 
-/* --- 3. NAVBAR & FOOTER SOMBRE --- */
-
+/* Navbar et Footer en mode sombre */
 html.theme-dark .navbar,
 html.theme-dark .footer {
     background-color: #1e293b !important; /* Slate 800 */
     border-color: #334155 !important;
 }
 
+/* --- 4. TEXTES & LIENS EN MODE SOMBRE --- */
+
 html.theme-dark .navbar-brand, 
 html.theme-dark .nav-link,
-html.theme-dark .footer .text-muted,
-html.theme-dark .footer a {
+html.theme-dark .footer .text-muted {
     color: #f1f5f9 !important;
 }
 
-/* --- 4. FORMULAIRES & COMPOSANTS --- */
+/* Correction spécifique pour le lien "Catalogue" en bleu ciel */
+html.theme-dark .footer a {
+    color: #38bdf8 !important; /* Sky 400 */
+}
+
+html.theme-dark .footer a:hover {
+    color: #7dd3fc !important; /* Sky 300 au survol */
+}
+
+/* --- 5. COMPOSANTS INTERACTIFS SOMBRES --- */
 
 html.theme-dark .form-control,
 html.theme-dark input, 
@@ -80,18 +97,18 @@ html.theme-dark select,
 html.theme-dark textarea,
 html.theme-dark .card,
 html.theme-dark .tab-content {
-    background-color: #1e293b !important;
+    background-color: #0f172a !important; /* Fond plus profond pour les inputs */
     color: #f1f5f9 !important;
     border: 1px solid #334155 !important;
 }
 
 html.theme-dark .nav-tabs .nav-link.active {
     background-color: #1e293b !important;
-    color: #38bdf8 !important; /* Sky 400 */
+    color: #38bdf8 !important;
     border-color: #334155 #334155 #1e293b !important;
 }
 
-/* --- 5. ICON TOGGLE HELPER --- */
+/* --- 6. ICON TOGGLE HELPER (CSP COMPLIANT) --- */
 .d-dark-none, .d-light-none { 
     display: none !important; 
 }

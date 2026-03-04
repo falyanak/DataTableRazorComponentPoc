@@ -20,7 +20,7 @@
                     <a class="navbar-brand" asp-area="" asp-controller="Products" asp-action="Index">
                         DataTable Razor Htmx
                     </a>
-                        
+
                     <button id="theme-toggle" class="btn btn-outline-secondary" type="button">
                         <i class="bi bi-sun-fill d-dark-none"></i>
                         <i class="bi bi-moon-fill d-light-none"></i>
@@ -34,11 +34,11 @@
             @RenderBody()
         </main>
 
-        <footer class="footer border-top py-3">
+        <footer class="footer border-top">
             <div class="container text-center">
                 <span class="text-muted">
-                    &copy; 2026 - test du composant DataTable - 
-                    <a asp-area="" asp-controller="Products" asp-action="Index">Catalogue des produits</a>
+                    &copy; 2026 - test du composant DataTable -
+                    <a asp-area="" asp-controller="Products" asp-action="Index">Catalogue</a>
                 </span>
             </div>
         </footer>
@@ -53,4 +53,5 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
