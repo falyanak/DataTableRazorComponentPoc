@@ -1,22 +1,111 @@
+/* --- 1. STRUCTURE FLEXBOX FLUIDE (ANTI-COUPE) --- */
 html {
-  font-size: 14px;
+    /* On utilise min-height pour permettre l'extension infinie du tableau */
+    min-height: 100%;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html { font-size: 16px; }
 }
 
 body {
-  margin-bottom: 60px;
+    /* On force le body à être un conteneur flex occupant au moins l'écran */
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #ffffff;
+    color: #212529;
+}
+
+/* Le wrapper s'étire pour occuper tout l'espace disponible */
+#theme-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto; /* Autorise la croissance sans limite */
+    width: 100%;
+}
+
+/* Le main "pousse" le footer vers le bas */
+main {
+    flex: 1 0 auto;
+}
+
+/* Le footer : Suppression du positionnement absolute/fixed qui coupait le tableau */
+.footer {
+    position: static !important; /* Force le retour dans le flux normal */
+    flex-shrink: 0; /* Empêche le footer d'être écrasé */
+    background-color: #f8f9fa;
+    padding: 1.5rem 0;
+    width: 100%;
+}
+
+/* --- 2. THÈME SOMBRE (RACINE) --- */
+
+html.theme-dark, 
+html.theme-dark body,
+html.theme-dark #theme-wrapper {
+    background-color: #0f172a !important; /* Slate 900 */
+    color: #f1f5f9 !important;
+}
+
+html.theme-dark main, 
+html.theme-dark .container, 
+html.theme-dark .container-fluid {
+    background-color: transparent !important;
+}
+
+/* --- 3. NAVBAR & FOOTER SOMBRE --- */
+
+html.theme-dark .navbar,
+html.theme-dark .footer {
+    background-color: #1e293b !important; /* Slate 800 */
+    border-color: #334155 !important;
+}
+
+html.theme-dark .navbar-brand, 
+html.theme-dark .nav-link,
+html.theme-dark .footer .text-muted,
+html.theme-dark .footer a {
+    color: #f1f5f9 !important;
+}
+
+/* --- 4. FORMULAIRES & COMPOSANTS --- */
+
+html.theme-dark .form-control,
+html.theme-dark input, 
+html.theme-dark select, 
+html.theme-dark textarea,
+html.theme-dark .card,
+html.theme-dark .tab-content {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #334155 !important;
+}
+
+html.theme-dark .nav-tabs .nav-link.active {
+    background-color: #1e293b !important;
+    color: #38bdf8 !important; /* Sky 400 */
+    border-color: #334155 #334155 #1e293b !important;
+}
+
+/* --- 5. ICON TOGGLE HELPER --- */
+.d-dark-none, .d-light-none { 
+    display: none !important; 
+}
+
+html.theme-light .d-light-none { 
+    display: inline-block !important; 
+}
+
+html.theme-dark .d-dark-none { 
+    display: inline-block !important; 
+}
+
+#theme-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
 }

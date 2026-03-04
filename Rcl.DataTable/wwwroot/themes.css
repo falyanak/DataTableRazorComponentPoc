@@ -1,0 +1,25 @@
+/* Définition des variables par défaut (Light) */
+:root {
+    --dt-primary: #0d6efd;
+    --dt-bg-header: #f8f9fa;
+    --dt-border-color: #dee2e6;
+}
+
+/* Thème Dark Modern */
+.theme-dark-modern {
+    --dt-primary: #38bdf8;
+    --dt-bg-header: #1e293b;
+    --dt-text-header: #f1f5f9;
+    --dt-footer-bg: #0f172a;
+    --dt-border-color: #334155;
+    background-color: #0f172a; /* Fond de page */
+    color: #f1f5f9;
+}
+
+/* Thème Luxury */
+.theme-luxury {
+    --dt-primary: #b8860b;
+    --dt-bg-header: #ffffff;
+    --dt-border-color: #e5e7eb;
+    --dt-radius: 1.5rem;
+}

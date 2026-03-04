@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/theme-init.ts"],
+  "sourcesContent": ["((): void => {\n    const savedTheme = localStorage.getItem('app-theme') || 'theme-light';\n    // On applique sur <html> (document.documentElement)\n    document.documentElement.classList.add(savedTheme);\n})();"],
+  "mappings": "oBAAC,IAAY,CACT,IAAMA,EAAa,aAAa,QAAQ,WAAW,GAAK,cAExD,SAAS,gBAAgB,UAAU,IAAIA,CAAU,CACrD,GAAG",
+  "names": ["savedTheme"]
+}

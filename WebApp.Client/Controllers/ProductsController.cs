@@ -132,6 +132,20 @@ public class ProductsController(IMemoryCache cache) : Controller
                     cache.Set(StateCacheKey, state);
                 }
             }
+
+            // On prépare l'objet pour le JS
+            var counts = new
+            {
+                total = allData.Count.ToString("N0", new System.Globalization.CultureInfo("fr-FR")),
+                filtered = state?.FilteredItems.Count ?? 0,
+                isFiltered = state?.IsFiltered ?? false
+            };
+
+            // HX-Trigger : Le serveur "crie" l'événement 'productUpdated'
+            Response.Headers.Add("HX-Trigger", System.Text.Json.JsonSerializer.Serialize(new
+            {
+                productUpdated = counts
+            }));
         }
 
         // 3. Rendu fluide via HTMX

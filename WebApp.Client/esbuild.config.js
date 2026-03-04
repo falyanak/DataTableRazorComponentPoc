@@ -4,23 +4,35 @@ async function run() {
     const isWatch = process.argv.includes('--watch');
 
     const options = {
-        entryPoints: ['src/main.ts'],
+        // On définit les deux points d'entrée
+        entryPoints: {
+            'main.bundle': 'src/main.ts',
+            'theme-init': 'src/theme-init.ts'
+        },
         bundle: true,
         minify: true,
-        outfile: 'wwwroot/dist/main.bundle.js',
+        sourcemap: true, // Recommandé pour le débugging TypeScript
+        // On utilise outdir au lieu de outfile pour gérer plusieurs fichiers
+        outdir: 'wwwroot/dist', 
         platform: 'browser',
         target: ['es2020'],
+        format: 'iife', // Format immédiat pour theme-init (essentiel pour le <head>)
     };
 
     if (isWatch) {
+        console.log("👀 Mode Watch activé...");
         let ctx = await esbuild.context(options);
         await ctx.watch();
     } else {
-        // On utilise build() qui est une promesse qui se termine
         await esbuild.build(options);
-        console.log("🚀 Bundle généré. Fin du processus.");
-        process.exit(0); // <--- FORCE LA SORTIE POUR LIBÉRER VS CODE
+        console.log("🚀 Bundles générés dans wwwroot/dist/ :");
+        console.log("   - main.bundle.js");
+        console.log("   - theme-init.js");
+        process.exit(0); 
     }
 }
 
-run().catch(() => process.exit(1));
+run().catch((err) => {
+    console.error("❌ Erreur de build:", err);
+    process.exit(1);
+});

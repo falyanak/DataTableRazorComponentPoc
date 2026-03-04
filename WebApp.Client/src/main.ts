@@ -1,54 +1,81 @@
-import { initDataTable } from '../../Rcl.DataTable/src/main'; 
-import { ThemeManager } from './ThemeManager';
+import { initDataTable } from "../../Rcl.DataTable/src/main";
+import { ThemeManager } from "./ThemeManager";
+import { ProductUpdatePayload } from "./types/events";
 
 declare global {
-    interface Window { 
-        themeManager: ThemeManager; 
-    }
+  interface Window {
+    themeManager: ThemeManager;
+  }
 }
 
 const AppManager = {
-    init(): void {
-        // 1. On initialise la structure technique de la DataTable (Scroll HTMX, etc.)
-        initDataTable(); 
+  init(): void {
+    // 1. Initialisation de l'instance globale
+    window.themeManager = new ThemeManager();
 
-        // 2. Thèmes
-        window.themeManager = new ThemeManager('theme-wrapper', 'client-theme-styles');   
+    // 2. Initialisation de la DataTable
+    initDataTable();
 
-        // 3. UNIQUE LISTENER pour toute l'application (Délégation)
-        document.addEventListener('click', (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
+    // 3. Délégation d'événements UNIQUE (Compatible CSP)
+    document.addEventListener("click", (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
 
-            // --- LOGIQUE DE SUPPRESSION (MÉTIER) ---
-            // Le client sait qu'il utilise la classe '.dt-form-delete'
-            const deleteBtn = target.closest('.dt-form-delete button[type="submit"]');
-            if (deleteBtn) {
-                const message = deleteBtn.getAttribute('data-confirm');
-                if (message && !confirm(message)) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return; // On s'arrête là
-                }
-            }
+      // --- LOGIQUE THEME ---
+      // On cherche si on a cliqué sur le bouton ou une icône à l'intérieur
+      // On cherche le bouton ou n'importe quel parent qui est le bouton de thème
+      const themeBtn = target.closest("#theme-toggle");
 
-            // --- LOGIQUE DES ONGLETS (MÉTIER) ---
-            const tab = target.closest('#productTabs .nav-link') as HTMLElement;
-            if (tab) {
-                this.handleTabClick(tab);
-                return;
-            }
-        });
+      if (themeBtn) {
+        console.log("-> Clic détecté sur le bouton toggle");
+        event.preventDefault(); // Empêche tout comportement par défaut
+        window.themeManager.toggle();
+      }
 
-        console.log("AppManager : Initialisé (Logique métier centralisée)");
-    },
+      // --- LOGIQUE ONGLETS ---
+      const tab = target.closest("#productTabs .nav-link") as HTMLElement;
+      if (tab) {
+        this.handleTabClick(tab);
+        return;
+      }
 
-    handleTabClick(tab: HTMLElement): void {
-        const container = tab.closest('#productTabs');
-        if (container) {
-            container.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            tab.classList.add('active');
+      // ... reste de ta logique de suppression ...
+    });
+
+    // --- DANS AppManager.init() ---
+
+    document.addEventListener("productUpdated", (event: any) => {
+      // Note : HTMX met les données dans event.detail
+      const data = event.detail as ProductUpdatePayload;
+
+      if (data) {
+        // 1. Badge Global (Layout/Index)
+        const mainBadge = document.getElementById("main-product-badge");
+        if (mainBadge) {
+          mainBadge.textContent = `${data.total} items`;
         }
+
+        // 2. Badge de la DataTable (RCL)
+        const searchBadgeCount = document.querySelector(
+          ".search-result-count strong",
+        );
+        if (searchBadgeCount) {
+          searchBadgeCount.textContent = data.filtered.toLocaleString("fr-FR");
+        }
+      }
+    });
+
+    console.log("AppManager : Initialisé (ThemeManager prêt)");
+  },
+
+  handleTabClick(tab: HTMLElement): void {
+    const container = tab.closest("#productTabs");
+    if (container) {
+      container
+        .querySelectorAll(".nav-link")
+        .forEach((el) => el.classList.remove("active"));
+      tab.classList.add("active");
     }
+  },
 };
 
-document.addEventListener('DOMContentLoaded', () => AppManager.init());
+document.addEventListener("DOMContentLoaded", () => AppManager.init());
