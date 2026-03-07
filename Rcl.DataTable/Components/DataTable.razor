@@ -55,27 +55,8 @@
 
                             @if (Model.HasActionButton)
                             {
-                                <td class="col-actions-cell">
-                                    <div class="actions-wrapper">
-                                        @foreach (var action in actions)
-                                        {
-                                            @if (action.IsDelete)
-                                            {
-                                                <button class="action-btn btn-delete" 
-                                                        hx-delete="@action.Url" 
-                                                        hx-confirm="Confirmer la suppression ?"
-                                                        hx-target="#dt-@Model.TableId">
-                                                    <i class="bi bi-trash3"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <a href="@action.Url" class="action-btn btn-edit">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                </a>
-                                            }
-                                        }
-                                    </div>
+                                <td>
+                                    <DataTableActions Actions="actions" />
                                 </td>
                             }
                         </tr>

@@ -9,12 +9,12 @@
     <div class="actions-wrapper">
         @foreach (var action in Actions)
         {
-            @if (action.IsDelete)
+            if (action.IsDelete)
             {
-                @* FORMULAIRE POST : Suppression avec jeton de sécurité *@
                 <form hx-post="@action.Url" 
                       hx-target="#dt-prod-grid" 
                       hx-swap="outerHTML" 
+                      hx-confirm="Êtes-vous sûr de vouloir supprimer : @action.Title ?"
                       class="dt-action-form">
                     
                     @{
@@ -22,26 +22,15 @@
                     }
                     <input type="hidden" name="@tokens.FormFieldName" value="@tokens.RequestToken" />
 
-                    <button type="submit" 
-                            class="action-btn btn-delete" 
-                            data-confirm="Êtes-vous sûr de vouloir supprimer : @action.Title ?"
-                            title="Supprimer">
+                    <button type="submit" class="action-btn btn-delete" title="Supprimer">
                         <i class="bi @action.Icon"></i>
                     </button>
                 </form>
             }
             else
             {
-                @* FORMULAIRE GET : Détail / Édition via HTMX *@
-                @* On utilise un formulaire en GET pour que HTMX gère la navigation sans rechargement *@
-                <form hx-get="@action.Url" 
-                      hx-target="body" 
-                      hx-push-url="true" 
-                      class="dt-action-form">
-                    
-                    <button type="submit" 
-                            class="action-btn btn-edit" 
-                            title="@action.Title">
+                <form hx-get="@action.Url" hx-target="body" hx-push-url="true" class="dt-action-form">
+                    <button type="submit" class="action-btn btn-edit" title="@action.Title">
                         <i class="bi @action.Icon"></i>
                     </button>
                 </form>
@@ -51,6 +40,5 @@
 }
 
 @code {
-    [Parameter, EditorRequired] 
-    public List<TableAction> Actions { get; set; } = new();
+    [Parameter, EditorRequired] public List<TableAction> Actions { get; set; } = new();
 }
