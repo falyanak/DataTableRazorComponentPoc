@@ -3,11 +3,10 @@
 <div class="dt-search-panel">
     <div class="search-flex">
         <div class="search-input-wrapper">
-            @* Icône de recherche positionnée via CSS absolu *@
             <i class="bi bi-search search-icon"></i>
             
-            @* Input de recherche avec déclencheurs HTMX (delay 500ms pour limiter les appels) *@
             <input type="text" 
+                   id="dt-search-input-@TableId"
                    name="searchTerm" 
                    value="@Model.SearchTerm"
                    class="dt-input" 
@@ -19,39 +18,30 @@
                    hx-swap="outerHTML"
                    hx-indicator=".dt-loader-@TableId" />
             
-            @* Bouton d'effacement rapide (croix rouge) *@
-            @if (!string.IsNullOrEmpty(Model.SearchTerm))
-            {
-                <button type="button" class="btn-clear"
-                        hx-get="@Model.EraseSearchUrl" 
-                        hx-target="#dt-@TableId"
-                        hx-swap="outerHTML"
-                        title="Effacer la recherche">
-                    <i class="bi bi-x-circle-fill"></i>
-                </button>
-            }
+            <button type="button" 
+                    id="btn-clear-@TableId"
+                    class="btn-clear @(string.IsNullOrEmpty(Model.SearchTerm) ? "d-none" : "")"
+                    hx-get="@Model.EraseSearchUrl" 
+                    hx-target="#dt-@TableId"
+                    hx-swap="outerHTML"
+                    title="Effacer la recherche">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
         </div>
 
-        @* Badge affichant le nombre de résultats filtrés *@
         @if (!string.IsNullOrEmpty(Model.SearchTerm))
         {
-            <div class="dt-badge">
-                <strong>@TotalFound.ToString("N0")</strong> résultats
+            <div class="dt-filter-badge">
+                <strong>@TotalFound.ToString("N0")</strong> items
             </div>
         }
     </div>
     
-    @* Barre de progression HTMX qui s'affiche durant la requête *@
     <div class="dt-loader htmx-indicator dt-loader-@TableId"></div>
 </div>
 
 @code {
-    [Parameter, EditorRequired] 
-    public string TableId { get; set; } = string.Empty;
-
-    [Parameter, EditorRequired] 
-    public SearchViewModel Model { get; set; } = new();
-
-    [Parameter] 
-    public int TotalFound { get; set; }
+    [Parameter, EditorRequired] public string TableId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public SearchViewModel Model { get; set; } = new();
+    [Parameter] public int TotalFound { get; set; }
 }
