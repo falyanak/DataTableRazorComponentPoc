@@ -1,17 +1,11 @@
-@* 1. Déclaration des types génériques (Correction de l'erreur TItem) *@
 @typeparam TItem
 @typeparam TKey
-
-@* 2. Directives d'espaces de noms *@
 @using Rcl.DataTable.Models
 @using Microsoft.AspNetCore.Components.Routing
-
-@* 3. Injections *@
 @inject NavigationManager Navigation
 
 @if (Model != null)
 {
-    @* Conteneur principal avec extension Morph pour HTMX *@
     <div class="dt-container" id="dt-@Model.TableId" hx-ext="morph" hx-swap="morph">
 
         @if (Model.Search.IsVisible && !string.IsNullOrEmpty(Model.Search.SearchUrl))
@@ -49,7 +43,6 @@
                         var detailUrl = actions.FirstOrDefault(a => !a.IsDelete)?.Url;
                         var isSelected = Model.SelectedId?.Equals(Model.GetKey(item)) ?? false;
 
-                        @* Ligne cliquable avec exclusion des boutons d'actions pour éviter le double clic *@
                         <tr class="clickable-row @(isSelected ? "active" : "")"
                             onclick="if (!event.target.closest('.actions-wrapper')) { window.location.href='@detailUrl'; }">
 
@@ -70,7 +63,6 @@
             </table>
         </div>
 
-        @* PIED DE TABLEAU : Pagination complète *@
         <div class="dt-footer">
             <div class="page-size-selector">
                 <span class="text-muted-small">Afficher</span>
@@ -89,11 +81,13 @@
 
             <div class="pagination-wrapper">
                 <div class="pagination-group">
+                    @* Premier *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(1)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Premier">
                         <i class="bi bi-chevron-bar-left"></i>
                     </button>
 
+                    @* Reculer de 10 *@
                     @{ var prevBlock = Math.Max(1, Model.CurrentPage - 10); }
                     <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(prevBlock)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
@@ -101,22 +95,23 @@
                         <i class="bi bi-chevron-double-left"></i>
                     </button>
 
+                    @* Précédent *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
                             disabled="@(Model.CurrentPage <= 1)">
                         <i class="bi bi-chevron-left"></i>
                     </button>
 
-                    <span class="page-info">
-                        @Model.GetInfoPagePositionFormattedValue()
-                    </span>
+                    <span class="page-info">@Model.GetInfoPagePositionFormattedValue()</span>
 
+                    @* Suivant *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
                             disabled="@(Model.CurrentPage >= Model.TotalPages)">
                         <i class="bi bi-chevron-right"></i>
                     </button>
 
+                    @* Avancer de 10 *@
                     @{ var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10); }
                     <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(nextBlock)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
@@ -124,6 +119,7 @@
                         <i class="bi bi-chevron-double-right"></i>
                     </button>
 
+                    @* Dernier *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.TotalPages)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Dernier">
                         <i class="bi bi-chevron-bar-right"></i>

@@ -2,6 +2,8 @@
 @using WebApp.Client.Models
 @model DataTableViewModel<Product, Guid>
 
+<link rel="stylesheet" href="WebApp.Client.styles.css" />
+
 @{
     ViewData["Title"] = "Gestion du Million de Produits";
     var itemCount = Model.TotalItems;

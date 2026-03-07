@@ -1,190 +1,83 @@
-/* --- 1. VARIABLES AGNOSTIQUES & THÉMATISATION --- */
-:host, .dt-container {
-    --dt-primary: #0d6efd;
-    --dt-bg-header: #f8f9fa;
-    --dt-bg-surface: #ffffff; 
-    --dt-text-header: #495057;
-    --dt-text-body: #212529;
-    --dt-text-muted: #6c757d;
-    --dt-row-hover: rgba(0, 0, 0, 0.04);
-    --dt-radius: 0.375rem;
-    --dt-footer-bg: #f8f9fa;
-    --dt-border-color: #dee2e6;
-}
-
-.theme-dark .dt-container {
-    --dt-primary: #38bdf8;
-    --dt-bg-header: #1e293b;
-    --dt-bg-surface: #0f172a;
-    --dt-text-header: #cbd5e1;
-    --dt-text-body: #f1f5f9;
-    --dt-text-muted: #94a3b8;
-    --dt-row-hover: rgba(255, 255, 255, 0.08);
-    --dt-footer-bg: #1e293b;
-    --dt-border-color: #334155;
-}
-
-/* --- 2. CONTENEUR PRINCIPAL --- */
+/* --- 1. BASE & VARIABLES --- */
 .dt-container {
-    background-color: var(--dt-bg-surface) !important;
-    color: var(--dt-text-body);
-    border: 1px solid var(--dt-border-color);
-    border-radius: var(--dt-radius) !important;
-    overflow: hidden;
+    --dt-primary: #0d6efd; --dt-bg-header: #f8f9fa; --dt-bg-surface: #ffffff; 
+    --dt-text-body: #212529; --dt-border-color: #dee2e6;
+    --dt-row-hover: rgba(13, 110, 253, 0.05); --dt-row-active: rgba(13, 110, 253, 0.12);
+    --dt-radius: 6px; --dt-font-size: 0.95rem; --dt-danger: #dc3545;
+    background-color: var(--dt-bg-surface) !important; color: var(--dt-text-body);
+    border: 1px solid var(--dt-border-color); border-radius: var(--dt-radius);
+    display: flex; flex-direction: column; width: 100%; box-sizing: border-box;
 }
 
-/* --- 3. TABLE & LIGNES --- */
-.table {
-    width: 100%;
-    table-layout: auto;
-    color: inherit !important;
-    margin-bottom: 0 !important;
+:global(#theme-wrapper.theme-dark) .dt-container {
+    --dt-bg-header: #1e293b; --dt-bg-surface: #0f172a; --dt-text-body: #f1f5f9; --dt-border-color: #334155;
 }
 
-.clickable-row {
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
+/* --- 2. TABLE & TRONCATURE (FIX RÉFÉRENCE) --- */
+::deep .table-responsive { overflow-x: auto; width: 100%; display: block; }
+::deep .table-custom { width: 100%; border-collapse: collapse !important; table-layout: fixed; } /* FIXED est vital ici */
+
+::deep .table-custom thead th {
+    background-color: var(--dt-bg-header) !important; padding: 0.75rem 1rem !important;
+    border-bottom: 2px solid var(--dt-border-color) !important; font-weight: 600; 
+    font-size: 0.8rem; text-transform: uppercase;
 }
 
-.clickable-row:hover {
-    background-color: var(--dt-row-hover) !important;
+::deep .table-custom td {
+    padding: 0.8rem 1rem; border-bottom: 1px solid var(--dt-border-color); vertical-align: middle;
+    /* TRONCATURE : PRD-0000001 devient PRD-0... */
+    white-space: nowrap !important; 
+    overflow: hidden !important;
+    text-overflow: ellipsis !important; 
 }
 
-.theme-dark .clickable-row:hover td {
-    color: #ffffff !important;
-}
+/* --- 3. SÉLECTION & RESTAURATION (LIGNE ACTIVE) --- */
+::deep .clickable-row { cursor: pointer; transition: background 0.2s ease; }
+::deep .clickable-row:hover { background-color: var(--dt-row-hover) !important; }
 
-/* État Sélectionné */
-.clickable-row.table-active {
-    background-color: color-mix(in srgb, var(--dt-primary), transparent 92%) !important;
+/* La classe .active pour retrouver sa ligne au retour du détail */
+::deep .clickable-row.active {
+    background-color: var(--dt-row-active) !important;
     border-left: 4px solid var(--dt-primary) !important;
-    font-weight: 500;
 }
 
-.theme-dark .clickable-row.table-active {
-    background-color: rgba(56, 189, 248, 0.2) !important; 
+/* --- 4. COLONNES TECHNIQUES (FIXÉES) --- */
+::deep th:nth-last-child(2), ::deep td:nth-last-child(2) {
+    width: 140px; min-width: 140px;
 }
 
-.theme-dark .clickable-row.table-active td {
-    color: #ffffff !important;
-    font-weight: 600;
+::deep th:last-child, ::deep td:last-child {
+    width: 110px; min-width: 110px; text-align: center !important;
 }
 
-/* --- 4. EN-TÊTES DE COLONNES --- */
-/* Unification de tous les TH (Actions inclus) */
-.table thead th {
-    background-color: var(--dt-bg-header) !important;
-    color: var(--dt-text-header) !important;
-    vertical-align: middle;
-    padding: 0.75rem !important;
-    border-bottom: 1px solid var(--dt-border-color) !important;
+/* --- 5. BOUTONS D'ACTIONS (ANTI-ÉCRASEMENT) --- */
+::deep .actions-wrapper { display: flex; gap: 8px; justify-content: center; align-items: center; }
+
+::deep .action-btn {
+    width: 32px !important; height: 32px !important; flex: 0 0 32px !important;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--dt-border-color); border-radius: 4px;
+    background: var(--dt-bg-surface); color: inherit; text-decoration: none;
 }
 
-.clickable-header {
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+::deep .btn-delete:hover { border-color: var(--dt-danger) !important; color: var(--dt-danger) !important; }
 
-.clickable-header .d-flex {
-    justify-content: center !important; 
-    gap: 0.5rem;
-    width: 100%;
-}
-
-.clickable-header span { font-weight: 600; }
-.clickable-header i { font-size: 1.1rem; color: var(--dt-primary) !important; }
-
-.table thead th.col-actions {
-    width: 1%;
-    white-space: nowrap;
-    text-align: right;
-}
-
-/* --- 5. ZONE DE RECHERCHE --- */
-.dt-search-container { padding: 1rem; }
-
-.dt-search-container input.form-control {
-    background-color: var(--dt-bg-surface) !important;
-    color: var(--dt-text-body) !important;
-    border: 1px solid var(--dt-border-color) !important;
-}
-
-.theme-dark .dt-search-container input::placeholder {
-    color: var(--dt-text-muted);
-    opacity: 0.7;
-}
-
-/* --- 6. ACTIONS & NAVIGATION (BOUTONS) --- */
-.col-actions .btn-group,
-.btn-group-flexible {
-    display: inline-flex;
-    background: var(--dt-bg-surface) !important;
-    border: 1px solid var(--dt-border-color);
-    border-radius: 0.375rem;
-    overflow: hidden;
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
-}
-
-.col-actions .btn-group .btn,
-.btn-group-flexible .btn {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none !important;
-    background-color: transparent !important;
-    color: var(--dt-text-header) !important;
-    transition: all 0.2s;
-}
-
-/* Hover unifié pour tous les boutons */
-.col-actions .btn-group .btn:hover,
-.btn-group-flexible .btn:hover:not(:disabled),
-.pagination-wrapper .btn:hover:not(:disabled) {
-    background-color: var(--dt-primary) !important;
-    color: #ffffff !important;
-    z-index: 2;
-}
-
-.col-actions .btn-group .border-start {
-    border-left: 1px solid var(--dt-border-color) !important;
-}
-
-/* --- 7. FOOTER & PAGINATION TEXT --- */
-.dt-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.25rem;
-    padding: 1rem;
-    background-color: var(--dt-footer-bg);
-    border-top: 1px solid var(--dt-border-color);
-}
-
-@media (min-width: 768px) {
-    .dt-footer { flex-direction: row; justify-content: space-between; padding: 0.75rem 1rem; }
-}
-
-.page-info-text {
-    min-width: 130px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--dt-bg-surface) !important;
-    color: var(--dt-text-header) !important;
-    border-left: 1px solid var(--dt-border-color) !important;
-    border-right: 1px solid var(--dt-border-color) !important;
-}
-
-.theme-dark .page-info-text {
-    background-color: var(--dt-bg-header) !important;
-}
-
-/* --- 8. RESPONSIVE --- */
+/* --- 6. MEDIA QUERIES (768 & 576) --- */
 @media (max-width: 768px) {
-    .table td { font-size: 0.85rem; padding: 0.75rem 0.5rem !important; }
-    .col-actions .btn-group .btn { width: 34px; height: 34px; }
+    ::deep .d-hide-mobile { display: none !important; }
+    .dt-footer { flex-direction: column; gap: 0.8rem; }
 }
+
+@media (max-width: 576px) {
+    .dt-container { --dt-font-size: 0.85rem; }
+    ::deep .table-custom td { padding: 0.5rem !important; }
+    ::deep .action-btn { width: 28px !important; height: 28px !important; flex: 0 0 28px !important; }
+}
+
+/* --- 7. FOOTER & LOADER --- */
+.dt-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 1rem; background-color: var(--dt-bg-header); border-top: 1px solid var(--dt-border-color);
+}
+::deep .dt-loader { height: 3px; width: 100%; background: var(--dt-primary); display: none; }
+::deep .htmx-request .dt-loader { display: block; }
