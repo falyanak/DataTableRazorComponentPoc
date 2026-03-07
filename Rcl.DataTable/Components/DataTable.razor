@@ -1,7 +1,6 @@
 @typeparam TItem
 @typeparam TKey
 @using Rcl.DataTable.Models
-@using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 
 @if (Model != null)
@@ -19,8 +18,9 @@
                     <tr>
                         @foreach (var col in Model.Columns)
                         {
+                            @* On applique d-hide-mobile si la colonne est la référence (supposée col 0 ou nom spécifique) *@
                             <th hx-get="@Model.GetSortUrl(col.Item2)" hx-target="#dt-@Model.TableId"
-                                class="user-select-none clickable-header">
+                                class="user-select-none clickable-header @(col.Item1.Contains("Référence") ? "d-hide-mobile" : "")">
                                 <div class="header-content">
                                     <span>@col.Item1</span>
                                     @if (Model.SortColumn == col.Item2)
@@ -48,13 +48,34 @@
 
                             @foreach (var col in Model.Columns)
                             {
-                                <td>@Model.GetFormattedValue(item, col.Item2)</td>
+                                <td class="@(col.Item1.Contains("Référence") ? "d-hide-mobile" : "")">
+                                    @Model.GetFormattedValue(item, col.Item2)
+                                </td>
                             }
 
                             @if (Model.HasActionButton)
                             {
                                 <td class="col-actions-cell">
-                                    <DataTableActions Actions="actions" />
+                                    <div class="actions-wrapper">
+                                        @foreach (var action in actions)
+                                        {
+                                            @if (action.IsDelete)
+                                            {
+                                                <button class="action-btn btn-delete" 
+                                                        hx-delete="@action.Url" 
+                                                        hx-confirm="Confirmer la suppression ?"
+                                                        hx-target="#dt-@Model.TableId">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="@action.Url" class="action-btn btn-edit">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                            }
+                                        }
+                                    </div>
                                 </td>
                             }
                         </tr>
@@ -76,52 +97,38 @@
                         <option value="@option" selected="@(Model.PageSize == option)">@option</option>
                     }
                 </select>
-                <span class="text-muted-small">lignes / page</span>
+                <span class="text-muted-small d-hide-mobile">lignes / page</span>
             </div>
 
             <div class="pagination-wrapper">
                 <div class="pagination-group">
-                    @* Premier *@
-                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Premier">
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(1)" hx-target="#dt-@Model.TableId" title="Premier">
                         <i class="bi bi-chevron-bar-left"></i>
                     </button>
 
-                    @* Reculer de 10 *@
-                    @{ var prevBlock = Math.Max(1, Model.CurrentPage - 10); }
-                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(prevBlock)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
-                            disabled="@(Model.CurrentPage <= 1)">
+                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(Math.Max(1, Model.CurrentPage - 10))"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage <= 1)">
                         <i class="bi bi-chevron-double-left"></i>
                     </button>
 
-                    @* Précédent *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
-                            disabled="@(Model.CurrentPage <= 1)">
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage <= 1)">
                         <i class="bi bi-chevron-left"></i>
                     </button>
 
                     <span class="page-info">@Model.GetInfoPagePositionFormattedValue()</span>
 
-                    @* Suivant *@
                     <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
-                            disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage >= Model.TotalPages)">
                         <i class="bi bi-chevron-right"></i>
                     </button>
 
-                    @* Avancer de 10 *@
-                    @{ var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10); }
-                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(nextBlock)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
-                            disabled="@(Model.CurrentPage >= Model.TotalPages)">
+                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(Math.Min(Model.TotalPages, Model.CurrentPage + 10))"
+                            hx-target="#dt-@Model.TableId" disabled="@(Model.CurrentPage >= Model.TotalPages)">
                         <i class="bi bi-chevron-double-right"></i>
                     </button>
 
-                    @* Dernier *@
-                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.TotalPages)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Dernier">
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.TotalPages)" hx-target="#dt-@Model.TableId" title="Dernier">
                         <i class="bi bi-chevron-bar-right"></i>
                     </button>
                 </div>
