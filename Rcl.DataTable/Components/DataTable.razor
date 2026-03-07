@@ -1,40 +1,44 @@
+@* 1. Déclaration des types génériques (Correction de l'erreur TItem) *@
 @typeparam TItem
 @typeparam TKey
+
+@* 2. Directives d'espaces de noms *@
 @using Rcl.DataTable.Models
+@using Microsoft.AspNetCore.Components.Routing
+
+@* 3. Injections *@
 @inject NavigationManager Navigation
 
 @if (Model != null)
 {
-    @* Activation de l'extension morph pour éviter les scintillements et garder le focus *@
-    <div class="dt-container border rounded bg-white shadow-sm d-flex flex-column" id="dt-@Model.TableId" hx-ext="morph"
-         hx-swap="morph">
+    @* Conteneur principal avec extension Morph pour HTMX *@
+    <div class="dt-container" id="dt-@Model.TableId" hx-ext="morph" hx-swap="morph">
 
         @if (Model.Search.IsVisible && !string.IsNullOrEmpty(Model.Search.SearchUrl))
         {
-            @* On utilise FilteredCount pour le badge de recherche *@
             <DataTableSearch TableId="@Model.TableId" Model="@Model.Search" TotalFound="@Model.FilteredCount" />
         }
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-nowrap">
+            <table class="table-custom">
+                <thead>
                     <tr>
                         @foreach (var col in Model.Columns)
                         {
                             <th hx-get="@Model.GetSortUrl(col.Item2)" hx-target="#dt-@Model.TableId"
                                 class="user-select-none clickable-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="header-content">
                                     <span>@col.Item1</span>
                                     @if (Model.SortColumn == col.Item2)
                                     {
-                                        <i class="bi @(Model.IsAsc ? "bi-sort-up" : "bi-sort-down") text-primary ms-1"></i>
+                                        <i class="bi @(Model.IsAsc ? "bi-sort-up" : "bi-sort-down")"></i>
                                     }
                                 </div>
                             </th>
                         }
                         @if (Model.HasActionButton)
                         {
-                            <th class="col-actions text-center">Actions</th>
+                            <th class="col-actions-header">Actions</th>
                         }
                     </tr>
                 </thead>
@@ -45,8 +49,9 @@
                         var detailUrl = actions.FirstOrDefault(a => !a.IsDelete)?.Url;
                         var isSelected = Model.SelectedId?.Equals(Model.GetKey(item)) ?? false;
 
-                        <tr class="clickable-row @(isSelected ? "table-active" : "")"
-                            onclick="if (!event.target.closest('.col-actions')) { window.location.href='@detailUrl'; }">
+                        @* Ligne cliquable avec exclusion des boutons d'actions pour éviter le double clic *@
+                        <tr class="clickable-row @(isSelected ? "active" : "")"
+                            onclick="if (!event.target.closest('.actions-wrapper')) { window.location.href='@detailUrl'; }">
 
                             @foreach (var col in Model.Columns)
                             {
@@ -55,7 +60,7 @@
 
                             @if (Model.HasActionButton)
                             {
-                                <td class="col-actions">
+                                <td class="col-actions-cell">
                                     <DataTableActions Actions="actions" />
                                 </td>
                             }
@@ -65,149 +70,71 @@
             </table>
         </div>
 
+        @* PIED DE TABLEAU : Pagination complète *@
         <div class="dt-footer">
-
-            <div class="page-size-container">
-
-                <div class="d-flex align-items-center gap-2">
-
-                    <span class="small text-muted text-nowrap">Afficher</span>
-
-                    @* Correction : Ajout de hx-swap="outerHTML" pour le changement de taille *@
-
-                    <select class="form-select form-select-sm shadow-sm" name="pageSize"
-                            hx-get="@Model.GetPageUrl(1).Split('?')[0]" hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
-                            hx-trigger="change">
-
-                        @foreach (var option in Model.PageSizeOptions)
-
-                        {
-
-                            <option value="@option" selected="@(Model.PageSize == option)">@option</option>
-
-                        }
-
-                    </select>
-
-                    <span class="small text-muted text-nowrap">lignes / page</span>
-
-                </div>
-
+            <div class="page-size-selector">
+                <span class="text-muted-small">Afficher</span>
+                <select class="dt-select" name="pageSize"
+                        hx-get="@Model.GetPageUrl(1).Split('?')[0]" 
+                        hx-target="#dt-@Model.TableId" 
+                        hx-swap="outerHTML"
+                        hx-trigger="change">
+                    @foreach (var option in Model.PageSizeOptions)
+                    {
+                        <option value="@option" selected="@(Model.PageSize == option)">@option</option>
+                    }
+                </select>
+                <span class="text-muted-small">lignes / page</span>
             </div>
-
-
 
             <div class="pagination-wrapper">
-
-                <div class="btn-group-flexible">
-
-                    @* Note : hx-swap="outerHTML" doit être sur chaque bouton de pagination *@
-
-                    @* Début *@
-
-                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML">
-
+                <div class="pagination-group">
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(1)"
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Premier">
                         <i class="bi bi-chevron-bar-left"></i>
-
                     </button>
 
-
-                    @* TODO : changer 10 en valeur courante de nombre lignes par page *@
-
-                    @{
-
-                        var prevBlock = Math.Max(1, Model.CurrentPage - 10);
-
-                    }
-
-                    @* Bloc précédent *@
-
-                    <button class="btn btn-sm btn-light border-0 d-none d-sm-flex" hx-get="@Model.GetPageUrl(prevBlock)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" disabled="@(Model.CurrentPage <= 1)">
-
+                    @{ var prevBlock = Math.Max(1, Model.CurrentPage - 10); }
+                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(prevBlock)"
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
+                            disabled="@(Model.CurrentPage <= 1)">
                         <i class="bi bi-chevron-double-left"></i>
-
                     </button>
 
-
-
-                    @* Précédent *@
-
-                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" disabled="@(Model.CurrentPage <= 1)">
-
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)"
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" 
+                            disabled="@(Model.CurrentPage <= 1)">
                         <i class="bi bi-chevron-left"></i>
-
                     </button>
 
-
-
-                    <span class="page-info-text bg-white">
-
+                    <span class="page-info">
                         @Model.GetInfoPagePositionFormattedValue()
-
                     </span>
 
-
-
-                    @* Suivant *@
-
-                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
                             disabled="@(Model.CurrentPage >= Model.TotalPages)">
-
                         <i class="bi bi-chevron-right"></i>
-
                     </button>
 
-
-
-                    @* TODO : changer 10 en valeur courante de nombre lignes par page *@
-
-                    @{
-
-                        var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10);
-
-                    }
-
-                    @* Bloc suivant *@
-
-                    <button class="btn btn-sm btn-light border-0 d-none d-sm-flex" hx-get="@Model.GetPageUrl(nextBlock)"
+                    @{ var nextBlock = Math.Min(Model.TotalPages, Model.CurrentPage + 10); }
+                    <button class="pagination-btn d-hide-mobile" hx-get="@Model.GetPageUrl(nextBlock)"
                             hx-target="#dt-@Model.TableId" hx-swap="outerHTML"
                             disabled="@(Model.CurrentPage >= Model.TotalPages)">
-
                         <i class="bi bi-chevron-double-right"></i>
-
                     </button>
 
-
-
-                    @* Fin *@
-
-                    <button class="btn btn-sm btn-light border-0" hx-get="@Model.GetPageUrl(Model.TotalPages)"
-                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML">
-
+                    <button class="pagination-btn" hx-get="@Model.GetPageUrl(Model.TotalPages)"
+                            hx-target="#dt-@Model.TableId" hx-swap="outerHTML" title="Dernier">
                         <i class="bi bi-chevron-bar-right"></i>
-
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 }
 
-
-
 @code {
-
     [Parameter] public DataTableViewModel<TItem, TKey>? Model { get; set; }
-
     [Parameter] public Func<TItem, List<TableAction>>? GetActions { get; set; }
-
 }
