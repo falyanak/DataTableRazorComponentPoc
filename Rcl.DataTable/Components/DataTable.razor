@@ -7,18 +7,19 @@
 {
     <div class="dt-container" id="dt-@Model.TableId" hx-ext="morph" hx-swap="morph">
 
+        @* --- 1. HEADER (Recherche & Badges) --- *@
         @if (Model.Search.IsVisible && !string.IsNullOrEmpty(Model.Search.SearchUrl))
         {
             <DataTableSearch TableId="@Model.TableId" Model="@Model.Search" TotalFound="@Model.FilteredCount" />
         }
 
+        @* --- 2. CORPS RESPONSIVE (Technique Bootstrap) --- *@
         <div class="table-responsive">
             <table class="table-custom">
                 <thead>
                     <tr>
                         @foreach (var col in Model.Columns)
                         {
-                            @* On applique d-hide-mobile si la colonne est la référence (supposée col 0 ou nom spécifique) *@
                             <th hx-get="@Model.GetSortUrl(col.Item2)" hx-target="#dt-@Model.TableId"
                                 class="user-select-none clickable-header @(col.Item1.Contains("Référence") ? "d-hide-mobile" : "")">
                                 <div class="header-content">
@@ -55,7 +56,7 @@
 
                             @if (Model.HasActionButton)
                             {
-                                <td>
+                                <td class="col-actions-cell">
                                     <DataTableActions Actions="actions" />
                                 </td>
                             }
@@ -65,9 +66,10 @@
             </table>
         </div>
 
+        @* --- 3. FOOTER (Pagination & PageSize) --- *@
         <div class="dt-footer">
             <div class="page-size-selector">
-                <span class="text-muted-small">Afficher</span>
+                <span class="dt-label">Afficher</span>
                 <select class="dt-select" name="pageSize"
                         hx-get="@Model.GetPageUrl(1).Split('?')[0]" 
                         hx-target="#dt-@Model.TableId" 
@@ -78,7 +80,7 @@
                         <option value="@option" selected="@(Model.PageSize == option)">@option</option>
                     }
                 </select>
-                <span class="text-muted-small">lignes / page</span>
+                <span class="dt-label">lignes par page</span>
             </div>
 
             <div class="pagination-wrapper">
