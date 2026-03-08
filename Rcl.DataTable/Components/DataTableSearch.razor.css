@@ -59,7 +59,7 @@
     padding: 4px 10px;
     border-radius: 6px;
     border: 1px solid var(--dt-border-color);
-    font-size: 0.75rem;
+    font-size: 1rem;
     white-space: nowrap;
 }
 
