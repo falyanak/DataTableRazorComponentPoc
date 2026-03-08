@@ -2,9 +2,9 @@
 
 <div class="dt-search-panel">
     <div class="search-flex">
+        @* 1. Zone de Recherche *@
         <div class="search-input-wrapper">
             <i class="bi bi-search search-icon"></i>
-            
             <input type="text" 
                    id="dt-search-input-@TableId"
                    name="searchTerm" 
@@ -29,10 +29,11 @@
             </button>
         </div>
 
+        @* 2. Badge de Recherche (Positionné après le bouton Delete) *@
         @if (!string.IsNullOrEmpty(Model.SearchTerm))
         {
             <div class="dt-filter-badge">
-                <strong>@TotalFound.ToString("N0")</strong> items
+                <strong>@TotalFound.ToString("N0")</strong> items trouvés
             </div>
         }
     </div>
@@ -41,7 +42,12 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public string TableId { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public SearchViewModel Model { get; set; } = new();
-    [Parameter] public int TotalFound { get; set; }
+    [Parameter, EditorRequired] 
+    public string TableId { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired] 
+    public SearchViewModel Model { get; set; } = new();
+
+    [Parameter] 
+    public int TotalFound { get; set; }
 }
