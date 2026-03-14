@@ -1,53 +1,29 @@
 @using Rcl.DataTable.Models
 
-<div class="dt-search-panel">
-    <div class="search-flex">
-        @* 1. Zone de Recherche *@
-        <div class="search-input-wrapper">
-            <i class="bi bi-search search-icon"></i>
-            <input type="text" 
-                   id="dt-search-input-@TableId"
-                   name="searchTerm" 
-                   value="@Model.SearchTerm"
-                   class="dt-input" 
-                   placeholder="@Model.Placeholder"
-                   autocomplete="off"
-                   hx-get="@Model.SearchUrl" 
-                   hx-trigger="keyup changed delay:500ms, search" 
-                   hx-target="#dt-@TableId" 
-                   hx-swap="outerHTML"
-                   hx-indicator=".dt-loader-@TableId" />
-            
-            <button type="button" 
-                    id="btn-clear-@TableId"
-                    class="btn-clear @(string.IsNullOrEmpty(Model.SearchTerm) ? "d-none" : "")"
-                    hx-get="@Model.EraseSearchUrl" 
-                    hx-target="#dt-@TableId"
-                    hx-swap="outerHTML"
-                    title="Effacer la recherche">
-                <i class="bi bi-x-circle-fill"></i>
-            </button>
-        </div>
-
-        @* 2. Badge de Recherche (Positionné après le bouton Delete) *@
+<div class="search-wrapper">
+    <div class="search-input-box">
+        <i class="bi bi-search search-icon-bg"></i>
+        <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+               class="dt-input" autocomplete="off" placeholder="Filtrer..."
+               hx-get="@Model.SearchUrl" hx-trigger="keyup changed delay:300ms" />
+        
         @if (!string.IsNullOrEmpty(Model.SearchTerm))
         {
-            <div class="dt-filter-badge">
-                <strong>@TotalFound.ToString("N0")</strong> items trouvés
-            </div>
+            <button type="button" class="btn-clear" 
+                    hx-get="@Model.SearchUrl.Replace(Model.SearchTerm, "")" 
+                    hx-target="closest .dt-container">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
         }
     </div>
-    
-    <div class="dt-loader htmx-indicator dt-loader-@TableId"></div>
+    @if (TotalFound > 0 && !string.IsNullOrEmpty(Model.SearchTerm))
+    {
+        <span class="badge-large">@TotalFound</span>
+    }
 </div>
 
 @code {
-    [Parameter, EditorRequired] 
-    public string TableId { get; set; } = string.Empty;
-
-    [Parameter, EditorRequired] 
-    public SearchViewModel Model { get; set; } = new();
-
-    [Parameter] 
-    public int TotalFound { get; set; }
+    [Parameter, EditorRequired] public string TableId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public SearchViewModel Model { get; set; } = new();
+    [Parameter] public int TotalFound { get; set; }
 }

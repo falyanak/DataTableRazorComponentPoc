@@ -10,204 +10,134 @@ public class ProductsController(IMemoryCache cache) : Controller
     private const string DataCacheKey = "Products_Data_List";
     private const string StateCacheKey = "Products_Table_State";
 
-    private List<Product> GetCachedData()
-    {
-        return cache.GetOrCreate(DataCacheKey, entry =>
-        {
-            entry.SlidingExpiration = TimeSpan.FromMinutes(60);
-            return GenerateMillion();
-        }) ?? new List<Product>();
-    }
-
     public IActionResult Index(int page = 1, string? sort = null, int pageSize = 10, string? searchTerm = null)
     {
         var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
 
-        // 1. Détection du changement de recherche
-        // On ne recalcule la liste filtrée que si le terme a réellement changé
+        // 1. Filtrage (si searchTerm change ou est présent)
         if (state.SearchTerm != searchTerm)
         {
             state.SearchTerm = searchTerm;
             state.PageIndex = 1;
+            state.ExpandedRows.Clear();
 
             var allData = GetCachedData();
-
-            // On stocke la liste filtrée (ou complète) UNE SEULE FOIS dans le state
-            state.FilteredItems = state.IsFiltered
-                ? allData.Where(p => p.Name.Contains(searchTerm!, StringComparison.OrdinalIgnoreCase)
-                                  || p.Description.Contains(searchTerm!, StringComparison.OrdinalIgnoreCase)
-                ).ToList()
+            state.FilteredItems = !string.IsNullOrEmpty(searchTerm)
+                ? allData.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                                  || p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList()
                 : allData;
         }
 
-        // 2. Mise à jour des paramètres de navigation
+        // 2. Navigation & Tri
         state.PageIndex = page;
-        state.PageSize = pageSize;
+        state.PageSize = pageSize > 0 ? pageSize : 10;
 
-        if (sort != null)
+        if (!string.IsNullOrEmpty(sort))
         {
             state.IsAscending = (state.SortColumn == sort) ? !state.IsAscending : true;
             state.SortColumn = sort;
+            
+            // On trie ici les données filtrées
+            var listToSort = (state.FilteredItems.Any() || !string.IsNullOrEmpty(searchTerm)) ? state.FilteredItems : GetCachedData();
+            state.FilteredItems = state.IsAscending 
+                ? listToSort.OrderBy(p => p.GetType().GetProperty(sort)?.GetValue(p)).ToList()
+                : listToSort.OrderByDescending(p => p.GetType().GetProperty(sort)?.GetValue(p)).ToList();
         }
 
         cache.Set(StateCacheKey, state);
-
-        // On passe un état "prêt à l'emploi" au constructeur de vue
         return BuildTableResult(state);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken] // Important pour ton composant DataTableActions
+    public IActionResult Delete(Guid id)
+    {
+        var allData = GetCachedData();
+        var item = allData.FirstOrDefault(x => x.Id == id);
+        if (item != null)
+        {
+            allData.Remove(item);
+            cache.Set(DataCacheKey, allData);
+            
+            // Mettre à jour la liste filtrée dans le state
+            var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
+            if (state != null) state.FilteredItems.RemoveAll(x => x.Id == id);
+        }
+
+        // HTMX demande le rafraîchissement de la table
+        var currentState = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
+        return BuildTableResult(currentState);
+    }
+
+    [HttpGet]
+    public IActionResult ToggleRow(Guid id, int page, string? sort, bool isAsc, string? searchTerm)
+    {
+        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
+        if (state != null)
+        {
+            var rowId = id.ToString();
+            if (state.ExpandedRows.Contains(rowId)) state.ExpandedRows.Remove(rowId);
+            else state.ExpandedRows.Add(rowId);
+
+            state.PageIndex = page;
+            state.IsAscending = isAsc;
+            state.SortColumn = sort;
+            state.SearchTerm = searchTerm;
+
+            cache.Set(StateCacheKey, state);
+            return BuildTableResult(state);
+        }
+        return BadRequest();
     }
 
     private IActionResult BuildTableResult(DataTableState<Product, Guid> state)
     {
-        // Plus besoin de filtrer ici ! On utilise ce qui est dans le state.
-        // Si FilteredItems est vide et qu'on n'est pas filtré, on prend la source brute par sécurité.
-        var data = (state.FilteredItems.Any() || state.IsFiltered)
+        var data = (state.FilteredItems.Any() || !string.IsNullOrEmpty(state.SearchTerm))
                    ? state.FilteredItems
                    : GetCachedData();
 
         var vm = new DataTableViewModel<Product, Guid>
         {
-            TableId = "prod-grid",
-            Items = data, // ProcessData fera le Skip/Take sur cette liste
+            TableId = "dt-prod-grid", // FIX: Doit correspondre au hx-target des sous-composants
+            Items = data,
             CurrentPage = state.PageIndex,
             PageSize = state.PageSize,
-            SelectedId = state.SelectedId,
             SortColumn = state.SortColumn,
             IsAsc = state.IsAscending,
             KeySelector = p => p.Id,
-            HasActionButton = true,
-            TotalItems = data.Count, // Toujours le million d'origine
-            FilteredCount = data.Count, // Nombre après filtrage
-            Columns = [
-                ("N°", "Id"),
-            ("Référence", "Description"),
-            ("Nom", "Name"),
-            ("Prix", "Price"),
-            ("Consulté", "LastConsulted")
-            ],
+            TotalItems = data.Count,
+            ExpandedRows = state.ExpandedRows,
+            
+            Columns = new List<ColumnDefinition>
+            {
+                new() { Display = "Nom", Prop = "Name", IsSecondary = false },
+                new() { Display = "Référence", Prop = "Description", IsSecondary = true, ResponsiveClass = "d-none d-md-table-cell" },
+                new() { Display = "Prix", Prop = "Price", IsSecondary = true, ResponsiveClass = "d-none d-lg-table-cell" },
+                new() { Display = "Consulté", Prop = "LastConsulted", IsSecondary = true, ResponsiveClass = "d-none d-xl-table-cell" }
+            },
             Search = new SearchViewModel
             {
-                IsVisible = true,
                 SearchTerm = state.SearchTerm,
-                SearchUrl = Url.Action("Index", "Products"),
-                EraseSearchUrl = Url.Action("EraseSearchFilter", "Products"),
-                Placeholder = "Rechercher un produit..."
+                SearchUrl = "/Products/Index" // Le sous-composant utilise hx-get sur cette URL
             }
         };
 
         vm.ProcessData(state.PageSize);
 
+        // Sélection de la vue partielle ou complète
         return Request.Headers.ContainsKey("HX-Request")
              ? PartialView("_TablePartial", vm)
              : View("Index", vm);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Delete(Guid id)
-    {
-        // 1. Mise à jour de la source globale (Le million)
-        var allData = GetCachedData();
-        var item = allData.FirstOrDefault(p => p.Id == id);
+    private List<Product> GetCachedData() => cache.GetOrCreate(DataCacheKey, entry => GenerateMillion())!;
 
-        if (item != null)
-        {
-            allData.Remove(item);
-            cache.Set(DataCacheKey, allData);
-
-            // 2. Mise à jour de la vue filtrée dans le State
-            var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
-            if (state != null)
-            {
-                // On retire l'objet de la liste filtrée si elle le contient
-                var filteredItem = state.FilteredItems.FirstOrDefault(p => p.Id == id);
-                if (filteredItem != null)
-                {
-                    state.FilteredItems.Remove(filteredItem);
-
-                    // Si la page actuelle devient vide après suppression (ex: dernier item de la page 5)
-                    // On peut optionnellement reculer d'une page
-                    if (!state.FilteredItems.Any(p => true) && state.PageIndex > 1)
-                        state.PageIndex--;
-
-                    cache.Set(StateCacheKey, state);
-                }
-            }
-
-            // On prépare l'objet pour le JS
-            var counts = new
-            {
-                total = allData.Count.ToString("N0", new System.Globalization.CultureInfo("fr-FR")),
-                filtered = state?.FilteredItems.Count ?? 0,
-                isFiltered = state?.IsFiltered ?? false
-            };
-
-            // HX-Trigger : Le serveur "crie" l'événement 'productUpdated'
-            Response.Headers.Add("HX-Trigger", System.Text.Json.JsonSerializer.Serialize(new
-            {
-                productUpdated = counts
-            }));
-        }
-
-        // 3. Rendu fluide via HTMX
-        if (Request.Headers.ContainsKey("HX-Request"))
-        {
-            var currentState = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
-            return BuildTableResult(currentState!);
-        }
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    public IActionResult Details(Guid id)
-    {
-        var data = GetCachedData();
-        var product = data.FirstOrDefault(p => p.Id == id);
-        if (product == null) return NotFound();
-
-        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey) ?? new DataTableState<Product, Guid>();
-        state.SelectedId = id;
-        cache.Set(StateCacheKey, state);
-
-        product.LastConsulted = DateTime.Now;
-        return View(product);
-    }
-
-    public IActionResult EraseSearchFilter()
-    {
-        var state = cache.Get<DataTableState<Product, Guid>>(StateCacheKey);
-        if (state != null)
-        {
-            state.SearchTerm = null;
-            state.FilteredItems = [];
-            state.PageIndex = 1; // Optionnel : revenir à la première page
-            cache.Set(StateCacheKey, state);
-        }
-        return RedirectToAction(nameof(Index));
-    }
-
-    private List<Product> GenerateMillion() => Enumerable.Range(1, 1000000).Select(i => new Product
+    private List<Product> GenerateMillion() => Enumerable.Range(1, 100).Select(i => new Product
     {
         Id = Guid.NewGuid(),
         Description = $"PRD-{i:D7}",
-        Name = $"Produit Haute Performance {i}",
-        Price = i * 0.45m
+        Name = $"Produit {i}",
+        Price = i * 1.5m,
+        LastConsulted = DateTime.Now.AddMinutes(-i)
     }).ToList();
-
-    public IActionResult GetDescription(Guid id)
-    {
-        var data = GetCachedData();
-        var product = data.FirstOrDefault(p => p.Id == id);
-        if (product == null) return NotFound();
-
-        return Content($"Description du produit :\n{product.Name} - {product.Description}\nPrix : {product.Price:C}");
-    }
-
-    public IActionResult GetSpecification(Guid id)
-    {
-        var data = GetCachedData();
-        var product = data.FirstOrDefault(p => p.Id == id);
-        if (product == null) return NotFound();
-
-        return Content("Spécifications techniques du produit :\n- Poids : 1kg\n- Dimensions : 10x20x30cm\n- Couleur : Rouge\n- Garantie : 2 ans");
-    }
 }

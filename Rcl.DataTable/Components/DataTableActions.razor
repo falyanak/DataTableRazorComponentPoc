@@ -29,8 +29,9 @@
             }
             else
             {
+                @* Utilisation de hx-get pour la navigation fluide sans rechargement complet *@
                 <form hx-get="@action.Url" hx-target="body" hx-push-url="true" class="dt-action-form">
-                    <button type="submit" class="action-btn btn-edit" title="@action.Title">
+                    <button type="submit" class="action-btn btn-standard" title="@action.Title">
                         <i class="bi @action.Icon"></i>
                     </button>
                 </form>
