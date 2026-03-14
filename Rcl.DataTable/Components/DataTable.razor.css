@@ -1,211 +1,155 @@
-/* ==========================================================================
-   1. CONTENEUR PRINCIPAL (Dark Theme)
-   ========================================================================== */
+/* --- CONTENEUR --- */
 .dt-container {
-    background-color: #212529;
-    color: #dee2e6;
-    padding: 1.25rem;
-    border-radius: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #212529;
+  color: #dee2e6;
+  padding: 1.25rem;
+  border-radius: 4px;
 }
-
-/* Évite les doubles marges lors des swaps HTMX */
-.dt-container .dt-container {
-    padding: 0 !important;
-}
-
-/* ==========================================================================
-   2. EN-TÊTE (PageSize & Recherche)
-   ========================================================================== */
 .dt-header-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
-
 .dt-length select {
-    background-color: #2b3035;
-    border: 1px solid #495057;
-    color: white;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    outline: none;
-    cursor: pointer;
+  background-color: #2b3035;
+  border: 1px solid #495057;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* ==========================================================================
-   3. TABLE STRUCTURE
-   ========================================================================== */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
+/* --- TABLE --- */
 .table-custom {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
-
 .table-custom thead th {
-    background-color: #1a1d20;
-    border-bottom: 2px solid #373b3e;
-    padding: 12px 15px;
-    text-align: left;
-    color: #fff;
-    white-space: nowrap;
+  background-color: #1a1d20;
+  border-bottom: 2px solid #373b3e;
+  padding: 12px;
+  text-align: left;
+  color: #fff;
+}
+.table-custom tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #373b3e;
+  vertical-align: middle;
 }
 
-.table-custom tbody tr td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #373b3e;
-    vertical-align: middle;
-}
-
-/* Triangle de contrôle (Détails) */
+/* --- TRIANGLE (Responsive) --- */
 .dtr-control {
-    width: 40px;
-    cursor: pointer;
-    text-align: center;
+  width: 40px;
+  cursor: pointer;
+  text-align: center;
 }
-
 .dtr-control::before {
-    content: "";
-    display: inline-block;
-    border-top: 5px solid transparent;
-    border-left: 7px solid #6c757d;
-    border-bottom: 5px solid transparent;
-    transition: transform 0.2s ease;
+  content: "";
+  display: inline-block;
+  border-top: 5px solid transparent;
+  border-left: 7px solid #6c757d;
+  border-bottom: 5px solid transparent;
+  transition: transform 0.2s;
 }
-
 tr.dtr-expanded .dtr-control::before {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
-/* ==========================================================================
-   4. VOLET RESPONSIVE (Lignes empilées - Image 2)
-   ========================================================================== */
+/* --- VOLET ENFANT (tr-child) --- */
 tr.child {
-    background-color: #2c3034 !important;
+  background-color: #2c3034 !important;
 }
-
 tr.child td {
-    padding: 0 !important;
+  padding: 0 !important;
 }
-
 .dtr-details-container {
-    padding: 1rem 1.5rem;
+  padding: 1rem 1.5rem;
 }
-
 .dtr-details {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column; /* FORCE L'EMPILAGE VERTICAL DES LIGNES */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
-
 .dtr-details li {
-    display: flex; /* Aligne Titre et Donnée sur la même ligne interne */
-    padding: 0.6rem 0;
-    border-bottom: 1px solid #3d4246;
-    width: 100%;
+  display: flex;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #3d4246;
+  width: 100%;
 }
 
-.dtr-details li:last-child {
-    border-bottom: none;
+/* Masquage des LI si la colonne parente est devenue visible */
+.dtr-details li.d-md-none,
+.dtr-details li.d-lg-none,
+.dtr-details li.d-xl-none {
+  display: none !important;
 }
 
 .dtr-title {
-    font-weight: 600;
-    min-width: 150px; /* Aligne verticalement les valeurs */
-    color: #6c757d;
+  font-weight: 600;
+  min-width: 150px;
+  color: #6c757d;
 }
-
 .dtr-data {
-    color: #f8f9fa;
-    flex: 1;
+  color: #f8f9fa;
+  flex: 1;
 }
-
-/* Actions à l'intérieur du volet */
 .dtr-actions-inline {
-    margin-top: 1rem;
-    padding-top: 10px;
-    border-top: 1px solid #3d4246;
+  margin-top: 1rem;
+  border-top: 1px solid #3d4246;
+  padding-top: 10px;
 }
 
-/* ==========================================================================
-   5. PAGINATION (Design Segmenté - Image 2)
-   ========================================================================== */
+/* --- PAGINATION --- */
 .dt-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-    border-top: 1px solid #373b3e;
-    padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  border-top: 1px solid #373b3e;
+  padding-top: 1rem;
 }
-
-.dt-info {
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-
 .pagination-group {
-    display: flex;
-    gap: 4px;
+  display: flex;
+  gap: 4px;
 }
-
-.pagination-btn, 
+.pagination-btn,
 .pagination-number {
-    background-color: transparent;
-    border: 1px solid transparent;
-    color: #adb5bd;
-    min-width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: #adb5bd;
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
 }
-
-/* Bouton Actif (Carré gris sombre) */
 .pagination-number.active {
-    background-color: #3d4246;
-    border: 1px solid #495057;
-    color: #fff;
-    font-weight: bold;
+  background-color: #3d4246;
+  border: 1px solid #495057;
+  color: #fff;
+  font-weight: bold;
 }
 
-.pagination-btn:hover:not(.disabled),
-.pagination-number:not(.active):hover {
-    background-color: #2b3035;
-    color: #fff;
-}
-
-.pagination-btn.disabled,
-.pagination-btn[disabled] {
-    color: #495057;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-/* ==========================================================================
-   6. CLASSES RÉPONSIVES (Logique d-none / d-md-table-cell)
-   ========================================================================== */
+/* --- RESPONSIVE UTILS --- */
 @media (max-width: 767.98px) {
-    .d-md-table-cell { display: none !important; }
+  .d-md-table-cell {
+    display: none !important;
+  }
 }
-
 @media (min-width: 768px) {
-    .d-md-none { display: none !important; }
-    .d-md-table-cell { display: table-cell !important; }
+  .d-md-none {
+    display: none !important;
+  }
+  .d-md-table-cell {
+    display: table-cell !important;
+  }
 }
-
-@media (min-width: 992px) {
-    .d-lg-none { display: none !important; }
-    .d-lg-table-cell { display: table-cell !important; }
+@media (min-width: 1200px) {
+  .d-xl-none {
+    display: none !important;
+  }
 }

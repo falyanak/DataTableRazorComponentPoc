@@ -4,20 +4,14 @@
 
 @if (Model != null)
 {
-    @* FIX: ID imposé pour correspondre au hx-target de vos composants Actions et Search *@
-    <div class="dt-container" 
-         id="dt-prod-grid" 
-         hx-ext="morph" 
-         hx-target="this" 
-         hx-swap="outerHTML">
+    <div class="dt-container" id="dt-prod-grid" hx-ext="morph" hx-target="this" hx-swap="outerHTML">
 
-        @* --- HEADER --- *@
         <div class="dt-header-area">
             <div class="dt-length">
-                @* name="pageSize" mappe votre paramètre de méthode Index *@
+                @* name="pageSize" couplé à hx-include="this" permet à l'action Index de recevoir la valeur *@
                 <select name="pageSize" 
-                        hx-get="@Model.GetPageUrl(1)" 
-                        hx-trigger="change"
+                        hx-get="/Products/Index" 
+                        hx-trigger="change" 
                         hx-include="this">
                     @foreach (var opt in Model.PageSizeOptions)
                     {
@@ -26,33 +20,22 @@
                 </select>
                 <span class="ms-2 text-muted">entrées par page</span>
             </div>
-
-            @* Intégration de votre composant Search *@
-            <DataTableSearch TableId="dt-prod-grid" 
-                             Model="@Model.Search" 
-                             TotalFound="@Model.TotalItems" />
+            <DataTableSearch TableId="dt-prod-grid" Model="@Model.Search" TotalFound="@Model.TotalItems" />
         </div>
 
-        @* --- TABLE --- *@
         <div class="table-responsive">
             <table class="table-custom">
                 <thead>
                     <tr>
-                        <th class="dtr-control-header"></th>
-                        @foreach (var col in Model.Columns)
-                        {
-                            <th class="@col.ResponsiveClass" 
-                                hx-get="@Model.GetSortUrl(col.Prop)" 
-                                style="cursor:pointer">
-                                <div class="header-content">
-                                    <span>@col.Display</span>
-                                    @if (Model.SortColumn == col.Prop)
-                                    {
-                                        <i class="bi @(Model.IsAsc ? "bi-caret-up-fill" : "bi-caret-down-fill") ms-1"></i>
-                                    }
-                                </div>
-                            </th>
+                        @* Le triangle n'est affiché que si des colonnes secondaires existent *@
+                        @if (Model.Columns.Any(c => c.IsSecondary)) {
+                            <th class="dtr-control-header d-xl-none"></th>
                         }
+                        @foreach (var col in Model.Columns) {
+                            <th class="@col.ResponsiveClass" hx-get="@Model.GetSortUrl(col.Prop)">@col.Display</th>
+                        }
+                        @* Barre d'outils toujours visible sur PC (XL) *@
+                        <th class="d-none d-xl-table-cell">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,26 +43,35 @@
                     {
                         var rowId = Model.GetKey(item).ToString();
                         var isExpanded = Model.ExpandedRows.Contains(rowId);
+                        var hasSecondary = Model.Columns.Any(c => c.IsSecondary);
 
                         <tr class="@(isExpanded ? "dtr-expanded" : "")">
-                            <td class="dtr-control" hx-get="@Model.GetToggleUrl(rowId)"></td>
-                            @foreach (var col in Model.Columns)
-                            {
-                                <td class="@col.ResponsiveClass">
-                                    @Model.GetFormattedValue(item, col.Prop)
+                            @if (hasSecondary) {
+                                <td class="dtr-control d-xl-none" 
+                                    hx-get="/Products/ToggleRow?id=@rowId&page=@Model.CurrentPage&sort=@Model.SortColumn&isAsc=@Model.IsAsc&searchTerm=@Model.Search.SearchTerm">
                                 </td>
                             }
+                            @foreach (var col in Model.Columns) {
+                                <td class="@col.ResponsiveClass">@Model.GetFormattedValue(item, col.Prop)</td>
+                            }
+                            @* Actions en ligne pour le plein écran *@
+                            <td class="d-none d-xl-table-cell">
+                                <DataTableActions Actions="@GetActions(item)" />
+                            </td>
                         </tr>
 
-                        @if (isExpanded)
+                        @if (isExpanded && hasSecondary)
                         {
-                            <tr class="child">
+                            @* tr-child masqué sur XL car tout y est affiché en ligne *@
+                            <tr class="child d-xl-none">
                                 <td colspan="@(Model.Columns.Count + 1)">
                                     <div class="dtr-details-container">
                                         <ul class="dtr-details">
                                             @foreach (var col in Model.Columns.Where(c => c.IsSecondary))
                                             {
-                                                @* FIX: Empilement via CSS et exclusion des colonnes déjà visibles *@
+                                                @* LOGIQUE DE FLUIDITÉ : 
+                                                   On inverse la classe. Si la colonne s'affiche en md, 
+                                                   on la cache ici en md pour éviter les doublons. *@
                                                 <li class="dtr-item @col.ResponsiveClass.Replace("d-md-table-cell", "d-md-none").Replace("d-lg-table-cell", "d-lg-none")">
                                                     <span class="dtr-title">@col.Display</span>
                                                     <span class="dtr-data">@Model.GetFormattedValue(item, col.Prop)</span>
@@ -87,7 +79,6 @@
                                             }
                                         </ul>
                                         <div class="dtr-actions-inline">
-                                            @* Intégration de votre composant Actions *@
                                             <DataTableActions Actions="@GetActions(item)" />
                                         </div>
                                     </div>
@@ -99,7 +90,6 @@
             </table>
         </div>
 
-        @* --- FOOTER --- *@
         <div class="dt-footer">
             <div class="dt-info">@Model.GetInfoPagePositionFormattedValue()</div>
             <div class="pagination-group">
@@ -107,9 +97,7 @@
                 <button class="pagination-btn @(Model.CurrentPage == 1 ? "disabled" : "")" 
                         hx-get="@Model.GetPageUrl(Model.CurrentPage - 1)" 
                         @(Model.CurrentPage == 1 ? "disabled" : "")>‹</button>
-                
                 <span class="pagination-number active">@Model.CurrentPage</span>
-                
                 <button class="pagination-btn @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")" 
                         hx-get="@Model.GetPageUrl(Model.CurrentPage + 1)" 
                         @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")>›</button>
